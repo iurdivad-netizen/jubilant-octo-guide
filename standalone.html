@@ -1240,7 +1240,8 @@
                     <div class="quick-actions">
                         <button class="btn-secondary" id="changeScenarioBtn">Change Scenario</button>
                         <button class="btn-secondary" id="settingsBtn">Settings</button>
-                        <button class="btn-secondary" id="exportBtn">Export Conversation</button>
+                        <button class="btn-secondary" id="importBtn">📥 Import Session</button>
+                        <button class="btn-secondary" id="exportBtn">📤 Export Session</button>
                         <button class="btn-secondary" id="endBtn">End Session</button>
                     </div>
                 </div>
@@ -1468,6 +1469,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Hidden file input for importing sessions -->
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
     </div>
 
     <script>
@@ -1692,8 +1696,10 @@
             document.getElementById('settingsBtn').addEventListener('click', openSettings);
             document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
             document.getElementById('changeScenarioBtn').addEventListener('click', changeScenario);
-            document.getElementById('exportBtn').addEventListener('click', exportConversation);
+            document.getElementById('importBtn').addEventListener('click', triggerImport);
+            document.getElementById('exportBtn').addEventListener('click', exportSession);
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('importFileInput').addEventListener('change', handleFileImport);
 
             // Settings event listeners
             document.getElementById('themeSelect').addEventListener('change', updateThemeFromSettings);
@@ -2188,22 +2194,210 @@ Be engaging and maintain the scenario context!`;
             endSession();
         }
 
-        function exportConversation() {
-            const data = {
-                scenario: selectedScenario,
-                level: selectedLevel,
-                messages: conversationHistory,
-                duration: document.getElementById('sessionTimer').textContent,
-                timestamp: new Date().toISOString()
+        function exportSession() {
+            // Calculate elapsed session time in seconds
+            const elapsedSessionTime = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+
+            // Build comprehensive export data
+            const exportData = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                appName: 'French Voice Tutor',
+
+                // Session data
+                session: {
+                    selectedLevel,
+                    selectedScenario,
+                    conversationHistory,
+                    elapsedSessionTime,
+                    messageCount,
+                    lastAIResponse,
+                    initialGreeting,
+                    translations: Array.from(messageTranslations.entries())
+                },
+
+                // User settings (optional)
+                settings: {
+                    theme: settings.theme,
+                    accent: settings.accent,
+                    rate: settings.rate,
+                    pitch: settings.pitch,
+                    volume: settings.volume,
+                    autoPlay: settings.autoPlay,
+                    translationMode: settings.translationMode,
+                    showInterim: settings.showInterim,
+                    feedbackLevel: settings.feedbackLevel,
+                    correctionTone: settings.correctionTone,
+                    autoSend: settings.autoSend
+                },
+
+                // Metadata
+                metadata: {
+                    scenarioName: selectedScenario ? SCENARIOS[selectedScenario]?.name : 'Unknown',
+                    levelName: selectedLevel ? LEVELS[selectedLevel]?.name : 'Unknown',
+                    duration: document.getElementById('sessionTimer').textContent,
+                    messageCount: messageCount
+                }
             };
 
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `french-practice-${Date.now()}.json`;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            a.download = `french-tutor-session-${timestamp}.json`;
             a.click();
             URL.revokeObjectURL(url);
+
+            showStatus('Session exported successfully!', 'ready');
+        }
+
+        function triggerImport() {
+            // Trigger the hidden file input
+            document.getElementById('importFileInput').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    validateAndImportSession(importedData);
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert(`Failed to import session: ${error.message}`);
+                }
+            };
+            reader.onerror = () => {
+                alert('Failed to read file. Please try again.');
+            };
+            reader.readAsText(file);
+
+            // Reset file input so the same file can be imported again
+            event.target.value = '';
+        }
+
+        function validateAndImportSession(data) {
+            // Validate the imported data structure
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid file format: Not a valid JSON object');
+            }
+
+            // Check version (for future compatibility)
+            if (!data.version) {
+                throw new Error('Invalid file format: Missing version information');
+            }
+
+            // Validate session data
+            if (!data.session) {
+                throw new Error('Invalid file format: Missing session data');
+            }
+
+            const session = data.session;
+
+            // Validate required fields
+            if (!session.selectedLevel || !LEVELS[session.selectedLevel]) {
+                throw new Error(`Invalid or unknown proficiency level: ${session.selectedLevel}`);
+            }
+
+            if (!session.selectedScenario || !SCENARIOS[session.selectedScenario]) {
+                throw new Error(`Invalid or unknown scenario: ${session.selectedScenario}`);
+            }
+
+            if (!Array.isArray(session.conversationHistory)) {
+                throw new Error('Invalid conversation history format');
+            }
+
+            // Ask user if they want to import settings
+            let importSettings = false;
+            if (data.settings) {
+                importSettings = confirm('This file contains saved settings. Would you like to import them as well?\n\nClick OK to import settings, or Cancel to only import the session.');
+            }
+
+            // Confirm import
+            const scenarioName = data.metadata?.scenarioName || session.selectedScenario;
+            const levelName = data.metadata?.levelName || session.selectedLevel;
+            const messageCount = data.metadata?.messageCount || session.conversationHistory.length;
+
+            const confirmMessage = `Import session?\n\nScenario: ${scenarioName}\nLevel: ${levelName}\nMessages: ${messageCount}\n\nThis will replace your current session.`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Clear current session
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            conversationHistory = [];
+            messageCount = 0;
+            messageTranslations.clear();
+
+            // Import session data
+            selectedLevel = session.selectedLevel;
+            selectedScenario = session.selectedScenario;
+            conversationHistory = session.conversationHistory || [];
+            messageCount = session.messageCount || 0;
+            lastAIResponse = session.lastAIResponse || '';
+            initialGreeting = session.initialGreeting || '';
+
+            // Restore translations
+            if (session.translations && Array.isArray(session.translations)) {
+                messageTranslations = new Map(session.translations);
+            }
+
+            // Restore session time
+            const elapsedSessionTime = session.elapsedSessionTime || 0;
+            sessionStartTime = Date.now() - (elapsedSessionTime * 1000);
+
+            // Import settings if user agreed
+            if (importSettings && data.settings) {
+                settings = { ...settings, ...data.settings };
+                saveSettings();
+                applySettings();
+                applyTheme(settings.theme);
+            }
+
+            // Restore UI
+            const level = LEVELS[selectedLevel];
+            const scenario = SCENARIOS[selectedScenario];
+
+            document.getElementById('scenarioTitle').textContent = scenario.name;
+            document.getElementById('difficultyBadge').textContent = level.name;
+            document.getElementById('difficultyBadge').className = `difficulty-badge ${level.badge}`;
+            document.getElementById('learningObjectives').textContent = scenario.objectives;
+            document.getElementById('contextInstructions').textContent = scenario.context;
+
+            // Restore chat messages
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '';
+
+            // Add initial greeting if present
+            if (initialGreeting) {
+                addMessage('ai', initialGreeting);
+            }
+
+            // Add conversation history
+            conversationHistory.forEach((msg) => {
+                const translation = messageTranslations.get(msg.content);
+                addMessage(msg.role === 'user' ? 'user' : 'ai', msg.content, translation);
+            });
+
+            // Update message count
+            document.getElementById('messageCount').textContent = `${messageCount} messages`;
+
+            // Switch to conversation screen
+            document.getElementById('setupScreen').classList.remove('active');
+            document.getElementById('conversationScreen').classList.add('active');
+
+            // Start timer
+            startTimer();
+
+            showStatus('Session imported successfully!', 'ready');
+            alert('Session imported successfully! You can continue your conversation.');
         }
 
         function openSettings() {
