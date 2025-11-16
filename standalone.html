@@ -1600,7 +1600,8 @@
             // Start timer
             startTimer();
 
-            // Add AI greeting
+            // Add AI greeting to conversation history and UI
+            conversationHistory.push({ role: 'assistant', content: scenario.starterPrompt });
             addMessage('ai', scenario.starterPrompt);
             speakText(scenario.starterPrompt);
 
