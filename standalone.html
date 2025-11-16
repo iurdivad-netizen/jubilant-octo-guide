@@ -1353,6 +1353,7 @@
         let timerInterval = null;
         let messageCount = 0;
         let waveformInterval = null;
+        let messageTranslations = new Map(); // Store French->English translations
 
         // Settings state
         let settings = {
@@ -1663,6 +1664,10 @@ Instructions:
 - Ask follow-up questions
 - Stay in character for the scenario
 
+IMPORTANT: Format your response EXACTLY as follows:
+[FR] Your French response here
+[EN] English translation here
+
 Be engaging and maintain the scenario context!`;
 
             try {
@@ -1688,18 +1693,31 @@ Be engaging and maintain the scenario context!`;
                 }
 
                 const data = await response.json();
-                const aiMessage = data.choices[0].message.content;
+                const rawMessage = data.choices[0].message.content;
 
-                conversationHistory.push({ role: 'assistant', content: aiMessage });
-                lastAIResponse = aiMessage;
-                addMessage('ai', aiMessage);
+                // Parse French and English parts
+                let frenchText = rawMessage;
+                let englishTranslation = '';
+
+                const frenchMatch = rawMessage.match(/\[FR\]\s*(.*?)(?=\[EN\]|$)/s);
+                const englishMatch = rawMessage.match(/\[EN\]\s*(.*?)$/s);
+
+                if (frenchMatch && englishMatch) {
+                    frenchText = frenchMatch[1].trim();
+                    englishTranslation = englishMatch[1].trim();
+                    messageTranslations.set(frenchText, englishTranslation);
+                }
+
+                conversationHistory.push({ role: 'assistant', content: frenchText });
+                lastAIResponse = frenchText;
+                addMessage('ai', frenchText);
 
                 if (settings.autoPlay) {
-                    speakText(aiMessage);
+                    speakText(frenchText);
                 }
 
                 // Generate feedback
-                generateFeedback(userMessage, aiMessage);
+                generateFeedback(userMessage, frenchText);
 
                 updateMicButton('ready');
                 showStatus('Ready to continue', 'ready');
@@ -1772,8 +1790,14 @@ Be engaging and maintain the scenario context!`;
             } else {
                 translationDiv.classList.add('visible');
                 btn.textContent = 'Hide Translation';
-                // In a real implementation, you'd call a translation API here
-                translationDiv.textContent = `English: ${bubbleDiv.textContent}`;
+                // Get the actual English translation from our stored translations
+                const frenchText = bubbleDiv.textContent;
+                const englishTranslation = messageTranslations.get(frenchText);
+                if (englishTranslation) {
+                    translationDiv.textContent = `English: ${englishTranslation}`;
+                } else {
+                    translationDiv.textContent = `English: (Translation not available)`;
+                }
             }
         }
 
