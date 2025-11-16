@@ -12,13 +12,39 @@ A web application that helps you practice speaking French with AI at different s
 - **Real-time Transcription**: See what you're saying as you speak
 - **Adaptive Difficulty**: AI adjusts to your selected level
 
-## Prerequisites
+## Two Ways to Use This App
+
+### Option 1: Standalone HTML (Easiest)
+Simply open `standalone.html` in your browser - no installation required! Just enter your API key and start practicing.
+
+### Option 2: Server Version
+Run a full Node.js server with session management and enhanced features.
+
+---
+
+## Quick Start (Standalone Version)
+
+**No installation needed!**
+
+1. Get your Anthropic API key from [console.anthropic.com](https://console.anthropic.com/)
+2. Open `standalone.html` in Chrome or Edge
+3. Enter your API key (stored locally in your browser)
+4. Select level and topic
+5. Start speaking French!
+
+**Note**: The API key is stored in your browser's localStorage and never sent anywhere except directly to Anthropic's API.
+
+---
+
+## Full Installation (Server Version)
+
+### Prerequisites
 
 - Node.js (v14 or higher)
 - An Anthropic API key ([Get one here](https://console.anthropic.com/))
 - A modern web browser (Chrome recommended for best speech recognition)
 
-## Installation
+### Installation
 
 1. Clone this repository:
 ```bash
@@ -92,19 +118,40 @@ http://localhost:3000
 
 ```
 .
+├── standalone.html     # ⭐ Standalone version (no server needed!)
 ├── server.js           # Express server with Claude AI integration
 ├── package.json        # Node.js dependencies
 ├── .env               # Environment variables (API keys)
 ├── .env.example       # Example environment file
 ├── public/
-│   ├── index.html     # Main HTML page
+│   ├── index.html     # Main HTML page (server version)
 │   ├── app.js         # Frontend JavaScript (speech, UI logic)
 │   └── style.css      # Styling
 └── README.md          # This file
 ```
 
+## Which Version Should I Use?
+
+| Feature | Standalone HTML | Server Version |
+|---------|----------------|----------------|
+| Installation | None - just open the file | Requires Node.js + npm install |
+| API Key | Enter in browser | Store in .env file |
+| Setup Time | 30 seconds | 5 minutes |
+| Best For | Quick practice, portability | Development, customization |
+| Session Management | Browser-based | Server-based |
+| Offline Capable | No (needs API) | No (needs API) |
+
+**Recommendation**: Start with `standalone.html` for immediate use. Use the server version if you want to customize or extend the app.
+
 ## How It Works
 
+### Standalone Version
+- Single HTML file with embedded CSS and JavaScript
+- Makes direct API calls to Anthropic from the browser
+- Stores conversation history in memory
+- API key stored in browser's localStorage
+
+### Server Version
 1. **Frontend**:
    - Uses Web Speech API for speech-to-text (French)
    - Displays conversation in a chat interface
@@ -116,11 +163,11 @@ http://localhost:3000
    - Maintains conversation context per session
    - Provides level-appropriate responses
 
-3. **AI Conversation**:
-   - System prompts tailored to each CEFR level
-   - Stays on topic based on your selection
-   - Provides gentle corrections for grammar mistakes
-   - Asks follow-up questions to maintain flow
+### AI Conversation (Both Versions)
+- System prompts tailored to each CEFR level
+- Stays on topic based on your selection
+- Provides gentle corrections for grammar mistakes
+- Asks follow-up questions to maintain flow
 
 ## Tips for Best Results
 
