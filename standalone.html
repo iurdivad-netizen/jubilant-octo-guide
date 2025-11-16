@@ -1706,11 +1706,14 @@ Be engaging and maintain the scenario context!`;
                     frenchText = frenchMatch[1].trim();
                     englishTranslation = englishMatch[1].trim();
                     messageTranslations.set(frenchText, englishTranslation);
+                    console.log('Translation parsed successfully:', { frenchText, englishTranslation });
+                } else {
+                    console.warn('AI response not in expected [FR]/[EN] format. Raw message:', rawMessage);
                 }
 
                 conversationHistory.push({ role: 'assistant', content: frenchText });
                 lastAIResponse = frenchText;
-                addMessage('ai', frenchText);
+                addMessage('ai', frenchText, englishTranslation);
 
                 if (settings.autoPlay) {
                     speakText(frenchText);
@@ -1731,7 +1734,7 @@ Be engaging and maintain the scenario context!`;
             }
         }
 
-        function addMessage(role, text) {
+        function addMessage(role, text, translation = null) {
             const container = document.getElementById('chatContainer');
             const now = new Date();
             const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1752,6 +1755,11 @@ Be engaging and maintain the scenario context!`;
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
             bubbleDiv.textContent = text;
+
+            // Store translation as data attribute if provided
+            if (translation) {
+                bubbleDiv.dataset.translation = translation;
+            }
 
             contentDiv.appendChild(headerDiv);
             contentDiv.appendChild(bubbleDiv);
@@ -1790,9 +1798,8 @@ Be engaging and maintain the scenario context!`;
             } else {
                 translationDiv.classList.add('visible');
                 btn.textContent = 'Hide Translation';
-                // Get the actual English translation from our stored translations
-                const frenchText = bubbleDiv.textContent;
-                const englishTranslation = messageTranslations.get(frenchText);
+                // Get the English translation from the data attribute
+                const englishTranslation = bubbleDiv.dataset.translation;
                 if (englishTranslation) {
                     translationDiv.textContent = `English: ${englishTranslation}`;
                 } else {
