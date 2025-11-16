@@ -210,64 +210,8 @@
             grid-template-columns: 1fr 2fr 1fr;
             grid-template-rows: auto 1fr auto;
             gap: 12px;
-            height: calc(100vh - 280px);
+            height: calc(100vh - 200px);
             min-height: 400px;
-            max-height: 650px;
-            transform-origin: top center;
-            transition: transform 0.3s ease;
-        }
-
-        /* Zoom Controls */
-        .zoom-controls {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 999;
-            background: white;
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .zoom-btn {
-            width: 45px;
-            height: 45px;
-            border: none;
-            border-radius: 8px;
-            background: var(--french-blue);
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .zoom-btn:hover {
-            background: #003d82;
-            transform: scale(1.05);
-        }
-
-        .zoom-btn.reset {
-            background: var(--gold-accent);
-            font-size: 0.9rem;
-        }
-
-        .zoom-btn.reset:hover {
-            background: #C4A027;
-        }
-
-        .zoom-level {
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-            padding: 5px 0;
         }
 
         /* Top Left: Scenario & Context Panel */
@@ -939,19 +883,6 @@
                 grid-column: 1;
                 grid-row: 4;
             }
-
-            .zoom-controls {
-                bottom: 20px;
-                right: 20px;
-                padding: 8px;
-                gap: 8px;
-            }
-
-            .zoom-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 1.1rem;
-            }
         }
     </style>
 </head>
@@ -987,14 +918,6 @@
 
         <!-- Conversation Screen with 4-Panel Layout -->
         <div id="conversationScreen" class="screen">
-            <!-- Zoom Controls -->
-            <div class="zoom-controls">
-                <button class="zoom-btn" id="zoomInBtn" title="Zoom In (Ctrl/Cmd + =)">+</button>
-                <div class="zoom-level" id="zoomLevel">100%</div>
-                <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out (Ctrl/Cmd + -)">−</button>
-                <button class="zoom-btn reset" id="zoomResetBtn" title="Reset Zoom (Ctrl/Cmd + 0)">⟲</button>
-            </div>
-
             <div class="conversation-layout" id="conversationLayout">
                 <!-- Top Left: Scenario & Context Panel -->
                 <div class="scenario-panel">
@@ -1172,11 +1095,6 @@
 
                 <div class="settings-group">
                     <h3>Display Preferences</h3>
-
-                    <div class="settings-item">
-                        <label>Zoom Level: <span class="slider-value" id="zoomValue">100%</span></label>
-                        <input type="range" id="zoomSlider" min="50" max="150" step="10" value="100">
-                    </div>
 
                     <div class="settings-item">
                         <label>Translation Display</label>
@@ -1366,8 +1284,7 @@
             showInterim: true,
             feedbackLevel: 'normal',
             correctionTone: 'encouraging',
-            autoSend: true,
-            zoomLevel: 1.0
+            autoSend: true
         };
 
         // ===== INITIALIZATION =====
@@ -1450,37 +1367,17 @@
             document.getElementById('changeScenarioBtn').addEventListener('click', changeScenario);
             document.getElementById('exportBtn').addEventListener('click', exportConversation);
 
-            // Zoom controls event listeners
-            document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
-            document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
-            document.getElementById('zoomResetBtn').addEventListener('click', zoomReset);
-
             // Settings event listeners
             document.getElementById('accentSelect').addEventListener('change', updateSettings);
             document.getElementById('rateSlider').addEventListener('input', updateRateDisplay);
             document.getElementById('pitchSlider').addEventListener('input', updatePitchDisplay);
             document.getElementById('volumeSlider').addEventListener('input', updateVolumeDisplay);
-            document.getElementById('zoomSlider').addEventListener('input', updateZoomDisplay);
             document.getElementById('autoPlayToggle').addEventListener('change', updateSettings);
             document.getElementById('translationMode').addEventListener('change', updateSettings);
             document.getElementById('interimToggle').addEventListener('change', updateSettings);
             document.getElementById('feedbackLevel').addEventListener('change', updateSettings);
             document.getElementById('correctionTone').addEventListener('change', updateSettings);
             document.getElementById('autoSendToggle').addEventListener('change', updateSettings);
-
-            // Keyboard shortcuts for zoom
-            document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === '=') {
-                    e.preventDefault();
-                    zoomIn();
-                } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-                    e.preventDefault();
-                    zoomOut();
-                } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
-                    e.preventDefault();
-                    zoomReset();
-                }
-            });
         }
 
         function setupSpeechRecognition() {
@@ -1985,7 +1882,6 @@ Be engaging and maintain the scenario context!`;
             document.getElementById('rateSlider').value = settings.rate;
             document.getElementById('pitchSlider').value = settings.pitch;
             document.getElementById('volumeSlider').value = settings.volume * 100;
-            document.getElementById('zoomSlider').value = settings.zoomLevel * 100;
             document.getElementById('autoPlayToggle').checked = settings.autoPlay;
             document.getElementById('translationMode').value = settings.translationMode;
             document.getElementById('interimToggle').checked = settings.showInterim;
@@ -1996,8 +1892,6 @@ Be engaging and maintain the scenario context!`;
             updateRateDisplay();
             updatePitchDisplay();
             updateVolumeDisplay();
-            updateZoomDisplay();
-            applyZoom();
         }
 
         function updateSettings() {
@@ -2033,45 +1927,8 @@ Be engaging and maintain the scenario context!`;
             settings.volume = parseFloat(value) / 100;
         }
 
-        function updateZoomDisplay() {
-            const value = document.getElementById('zoomSlider').value;
-            document.getElementById('zoomValue').textContent = `${value}%`;
-            settings.zoomLevel = parseFloat(value) / 100;
-            applyZoom();
-            saveSettings();
-        }
-
         function showStatus(message, type = 'ready') {
             document.getElementById('statusText').textContent = message;
-        }
-
-        // ===== ZOOM FUNCTIONS =====
-        function applyZoom() {
-            const layout = document.getElementById('conversationLayout');
-            layout.style.transform = `scale(${settings.zoomLevel})`;
-            document.getElementById('zoomLevel').textContent = `${Math.round(settings.zoomLevel * 100)}%`;
-        }
-
-        function zoomIn() {
-            if (settings.zoomLevel < 1.5) {
-                settings.zoomLevel = Math.min(1.5, settings.zoomLevel + 0.1);
-                applyZoom();
-                saveSettings();
-            }
-        }
-
-        function zoomOut() {
-            if (settings.zoomLevel > 0.5) {
-                settings.zoomLevel = Math.max(0.5, settings.zoomLevel - 0.1);
-                applyZoom();
-                saveSettings();
-            }
-        }
-
-        function zoomReset() {
-            settings.zoomLevel = 1.0;
-            applyZoom();
-            saveSettings();
         }
 
         // Load voices when ready
