@@ -1773,8 +1773,8 @@ Be engaging and maintain the scenario context!`;
             contentDiv.appendChild(headerDiv);
             contentDiv.appendChild(bubbleDiv);
 
-            // Add translation toggle for AI messages
-            if (role === 'ai' && settings.translationMode !== 'off') {
+            // Add translation toggle for AI messages (only if translation is available)
+            if (role === 'ai' && settings.translationMode !== 'off' && translation) {
                 const toggleBtn = document.createElement('button');
                 toggleBtn.className = 'translation-toggle';
                 toggleBtn.textContent = 'Show Translation';
