@@ -1791,19 +1791,27 @@ Be engaging and maintain the scenario context!`;
         }
 
         function toggleTranslation(btn, bubbleDiv) {
+            console.log('Toggle translation button clicked');
             const translationDiv = btn.nextElementSibling;
+            console.log('Translation div:', translationDiv);
+
             if (translationDiv.classList.contains('visible')) {
+                console.log('Hiding translation');
                 translationDiv.classList.remove('visible');
                 btn.textContent = 'Show Translation';
             } else {
+                console.log('Showing translation');
                 translationDiv.classList.add('visible');
                 btn.textContent = 'Hide Translation';
                 // Get the English translation from the data attribute
                 const englishTranslation = bubbleDiv.dataset.translation;
+                console.log('English translation data:', englishTranslation);
                 if (englishTranslation) {
                     translationDiv.textContent = `English: ${englishTranslation}`;
+                    console.log('Translation displayed:', englishTranslation);
                 } else {
                     translationDiv.textContent = `English: (Translation not available)`;
+                    console.warn('No translation available for this message');
                 }
             }
         }
