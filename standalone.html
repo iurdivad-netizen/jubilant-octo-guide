@@ -1694,6 +1694,7 @@ Be engaging and maintain the scenario context!`;
 
                 const data = await response.json();
                 const rawMessage = data.choices[0].message.content;
+                console.log('Raw AI response:', rawMessage);
 
                 // Parse French and English parts
                 let frenchText = rawMessage;
@@ -1701,6 +1702,9 @@ Be engaging and maintain the scenario context!`;
 
                 const frenchMatch = rawMessage.match(/\[FR\]\s*(.*?)(?=\[EN\]|$)/s);
                 const englishMatch = rawMessage.match(/\[EN\]\s*(.*?)$/s);
+
+                console.log('French match:', frenchMatch);
+                console.log('English match:', englishMatch);
 
                 if (frenchMatch && englishMatch) {
                     frenchText = frenchMatch[1].trim();
@@ -1713,6 +1717,7 @@ Be engaging and maintain the scenario context!`;
 
                 conversationHistory.push({ role: 'assistant', content: frenchText });
                 lastAIResponse = frenchText;
+                console.log('Calling addMessage with translation:', englishTranslation);
                 addMessage('ai', frenchText, englishTranslation);
 
                 if (settings.autoPlay) {
@@ -1735,6 +1740,7 @@ Be engaging and maintain the scenario context!`;
         }
 
         function addMessage(role, text, translation = null) {
+            console.log('addMessage called with:', { role, text, translation });
             const container = document.getElementById('chatContainer');
             const now = new Date();
             const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1758,7 +1764,10 @@ Be engaging and maintain the scenario context!`;
 
             // Store translation as data attribute if provided
             if (translation) {
+                console.log('Storing translation in dataset:', translation);
                 bubbleDiv.dataset.translation = translation;
+            } else {
+                console.warn('No translation provided to addMessage');
             }
 
             contentDiv.appendChild(headerDiv);
