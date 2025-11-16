@@ -4,9 +4,41 @@
     box-sizing: border-box;
 }
 
+:root {
+    /* Light theme colors */
+    --bg-gradient-start: #667eea;
+    --bg-gradient-end: #764ba2;
+    --screen-bg: white;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-light: #999;
+    --border-color: #e0e0e0;
+    --panel-bg: #f9f9f9;
+    --input-bg: white;
+    --status-bg: #f0f0f0;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+}
+
+body.dark-mode {
+    /* Dark theme colors */
+    --bg-gradient-start: #1a1a2e;
+    --bg-gradient-end: #16213e;
+    --screen-bg: #2a2a3a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-light: #808080;
+    --border-color: #3a3a4a;
+    --panel-bg: #1e1e2e;
+    --input-bg: #1a1a2a;
+    --status-bg: #1e1e2e;
+    --error-bg: #3a2a2a;
+    --error-border: #5a3a3a;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
     padding: 20px;
 }
@@ -20,6 +52,7 @@ header {
     text-align: center;
     color: white;
     margin-bottom: 40px;
+    position: relative;
 }
 
 header h1 {
@@ -33,9 +66,30 @@ header p {
     opacity: 0.9;
 }
 
+.theme-toggle {
+    position: absolute;
+    top: 0;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
 .screen {
     display: none;
-    background: white;
+    background: var(--screen-bg);
     border-radius: 20px;
     padding: 40px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -59,7 +113,7 @@ header p {
 
 /* Setup Screen */
 .setup-container h2 {
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 20px;
     margin-top: 30px;
 }
@@ -77,11 +131,11 @@ header p {
 
 .selection-card {
     padding: 20px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: white;
+    background: var(--screen-bg);
 }
 
 .selection-card:hover {
@@ -112,7 +166,7 @@ header p {
 }
 
 .model-selection h3 {
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-size: 1rem;
 }
@@ -120,10 +174,11 @@ header p {
 .model-select {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: 12px;
     font-size: 1rem;
-    background: white;
+    background: var(--input-bg);
+    color: var(--text-primary);
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -141,8 +196,8 @@ header p {
 .error-message {
     color: #ef4444;
     padding: 20px;
-    background: #fef2f2;
-    border: 2px solid #fecaca;
+    background: var(--error-bg);
+    border: 2px solid var(--error-border);
     border-radius: 12px;
     text-align: center;
 }
@@ -177,8 +232,8 @@ header p {
 }
 
 .btn-secondary {
-    background: #f5f5f5;
-    color: #333;
+    background: var(--panel-bg);
+    color: var(--text-primary);
     padding: 10px 20px;
     font-size: 0.9rem;
 }
@@ -194,7 +249,7 @@ header p {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .session-info {
@@ -215,7 +270,7 @@ header p {
     height: 400px;
     overflow-y: auto;
     padding: 20px;
-    background: #f9f9f9;
+    background: var(--panel-bg);
     border-radius: 12px;
     margin-bottom: 20px;
 }
@@ -259,21 +314,21 @@ header p {
 }
 
 .message.ai .message-bubble {
-    background: white;
-    color: #333;
-    border: 1px solid #e0e0e0;
+    background: var(--screen-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 .input-container {
-    background: #f9f9f9;
+    background: var(--panel-bg);
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 15px;
 }
 
 .transcription-box {
-    background: white;
-    border: 2px solid #e0e0e0;
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
     border-radius: 12px;
     padding: 15px;
     margin-bottom: 15px;
@@ -282,13 +337,13 @@ header p {
 
 .transcription-text {
     font-size: 1.1rem;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 5px;
 }
 
 .interim-text {
     font-size: 1rem;
-    color: #999;
+    color: var(--text-light);
     font-style: italic;
 }
 
@@ -360,12 +415,12 @@ header p {
     text-align: center;
     padding: 10px;
     border-radius: 8px;
-    background: #f0f0f0;
+    background: var(--status-bg);
 }
 
 #statusText {
     font-size: 0.9rem;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 #statusText.listening {

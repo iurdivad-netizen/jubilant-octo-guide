@@ -40,6 +40,55 @@
             --text-primary: #333;
             --text-secondary: #666;
             --text-light: #999;
+            --panel-bg: #f9f9f9;
+            --screen-bg: white;
+            --input-bg: white;
+            --message-ai-bg: white;
+            --transcription-bg: #f9f9f9;
+            --translation-bg: #FFF9E6;
+            --hover-bg: #e0e0e0;
+            --feedback-bg: white;
+            --api-section-bg: #f9f9f9;
+        }
+
+        body.dark-mode {
+            /* French Flag Colors - Keep same for brand consistency */
+            --french-blue: #4A9EFF;
+            --french-white: #FFFFFF;
+            --french-red: #FF6B6B;
+            --gold-accent: #FFD700;
+
+            /* User Messages */
+            --user-msg-bg: #1e3a5f;
+
+            /* Status Colors - Brighter for dark mode */
+            --status-ready: #FF6B6B;
+            --status-listening: #66BB6A;
+            --status-processing: #FFD54F;
+            --status-speaking: #42A5F5;
+            --status-error: #EF5350;
+
+            /* Difficulty Badge Colors - Keep vibrant */
+            --beginner-color: #66BB6A;
+            --intermediate-color: #42A5F5;
+            --advanced-color: #AB47BC;
+
+            /* UI Colors */
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --border-color: #3a3a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-light: #808080;
+            --panel-bg: #252535;
+            --screen-bg: #2a2a3a;
+            --input-bg: #1a1a2a;
+            --message-ai-bg: #1e1e2e;
+            --transcription-bg: #1e1e2e;
+            --translation-bg: #3a3a2a;
+            --hover-bg: #3a3a4a;
+            --feedback-bg: #1e1e2e;
+            --api-section-bg: #1e1e2e;
         }
 
         body {
@@ -58,6 +107,7 @@
             text-align: center;
             color: white;
             margin-bottom: 10px;
+            position: relative;
         }
 
         header h1 {
@@ -71,10 +121,31 @@
             opacity: 0.9;
         }
 
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
         /* Screens */
         .screen {
             display: none;
-            background: white;
+            background: var(--screen-bg);
             border-radius: 16px;
             padding: 25px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -92,7 +163,7 @@
 
         /* Setup Screen */
         .api-key-section {
-            background: #f9f9f9;
+            background: var(--api-section-bg);
             padding: 15px;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -112,6 +183,8 @@
             border-radius: 8px;
             font-size: 0.95rem;
             margin-bottom: 8px;
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
 
         .api-key-section input:focus {
@@ -143,7 +216,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--screen-bg);
         }
 
         .selection-card:hover {
@@ -178,7 +251,8 @@
             border: 2px solid var(--border-color);
             border-radius: 12px;
             font-size: 1rem;
-            background: white;
+            background: var(--input-bg);
+            color: var(--text-primary);
             cursor: pointer;
         }
 
@@ -220,7 +294,7 @@
         .scenario-panel {
             grid-column: 1;
             grid-row: 1 / 3;
-            background: #f9f9f9;
+            background: var(--panel-bg);
             border-radius: 10px;
             padding: 12px;
             overflow-y: auto;
@@ -300,7 +374,7 @@
         .chat-panel {
             grid-column: 2;
             grid-row: 1 / 3;
-            background: #f9f9f9;
+            background: var(--panel-bg);
             border-radius: 10px;
             padding: 12px;
             display: flex;
@@ -325,7 +399,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            background: white;
+            background: var(--screen-bg);
             border-radius: 10px;
         }
 
@@ -394,7 +468,7 @@
         }
 
         .message.ai .message-bubble {
-            background: white;
+            background: var(--message-ai-bg);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -442,7 +516,7 @@
         .feedback-panel {
             grid-column: 3;
             grid-row: 1 / 3;
-            background: #f9f9f9;
+            background: var(--panel-bg);
             border-radius: 10px;
             padding: 12px;
             overflow-y: auto;
@@ -470,7 +544,7 @@
         }
 
         .feedback-section {
-            background: white;
+            background: var(--feedback-bg);
             padding: 8px;
             border-radius: 8px;
             margin-bottom: 8px;
@@ -567,13 +641,13 @@
         .voice-controls-panel {
             grid-column: 1 / 4;
             grid-row: 3;
-            background: white;
+            background: var(--screen-bg);
             border-radius: 10px;
             padding: 12px;
         }
 
         .transcription-box {
-            background: #f9f9f9;
+            background: var(--transcription-bg);
             border: 2px solid var(--border-color);
             border-radius: 8px;
             padding: 10px;
@@ -725,7 +799,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--screen-bg);
             border-radius: 20px;
             padding: 40px;
             max-width: 700px;
@@ -781,6 +855,8 @@
             padding: 10px;
             border: 2px solid var(--border-color);
             border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
 
         .slider-value {
@@ -891,6 +967,7 @@
 <body>
     <div class="container">
         <header>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
             <h1>🇫🇷 French Voice Tutor v3</h1>
             <p>Professional Voice-Based French Learning with AI</p>
         </header>
@@ -1297,6 +1374,7 @@
             setupEventListeners();
             setupSpeechRecognition();
             loadSettings();
+            loadTheme();
         });
 
         function loadApiKey() {
@@ -1368,6 +1446,7 @@
             document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
             document.getElementById('changeScenarioBtn').addEventListener('click', changeScenario);
             document.getElementById('exportBtn').addEventListener('click', exportConversation);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
             // Settings event listeners
             document.getElementById('accentSelect').addEventListener('change', updateSettings);
@@ -1931,6 +2010,30 @@ Be engaging and maintain the scenario context!`;
 
         function showStatus(message, type = 'ready') {
             document.getElementById('statusText').textContent = message;
+        }
+
+        // ===== THEME MANAGEMENT =====
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('french_tutor_theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeToggleButton(true);
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            updateThemeToggleButton(isDark);
+            localStorage.setItem('french_tutor_theme', isDark ? 'dark' : 'light');
+        }
+
+        function updateThemeToggleButton(isDark) {
+            const btn = document.getElementById('themeToggle');
+            if (isDark) {
+                btn.textContent = '☀️ Light Mode';
+            } else {
+                btn.textContent = '🌙 Dark Mode';
+            }
         }
 
         // Load voices when ready
