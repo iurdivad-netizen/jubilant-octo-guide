@@ -2070,11 +2070,14 @@ Be engaging and maintain the scenario context!`;
                 return; // Don't save if no session started
             }
 
+            // Calculate elapsed session time in seconds
+            const elapsedSessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
+
             const sessionData = {
                 selectedLevel,
                 selectedScenario,
                 conversationHistory,
-                sessionStartTime,
+                elapsedSessionTime,  // Save elapsed time instead of start timestamp
                 messageCount,
                 lastAIResponse,
                 initialGreeting,
@@ -2084,7 +2087,7 @@ Be engaging and maintain the scenario context!`;
 
             try {
                 localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-                console.log('Session saved successfully');
+                console.log('Session saved successfully with elapsed time:', elapsedSessionTime);
             } catch (error) {
                 console.error('Failed to save session:', error);
             }
@@ -2148,7 +2151,20 @@ Be engaging and maintain the scenario context!`;
                 selectedLevel = sessionData.selectedLevel;
                 selectedScenario = sessionData.selectedScenario;
                 conversationHistory = sessionData.conversationHistory;
-                sessionStartTime = sessionData.sessionStartTime;
+
+                // Restore session time by calculating new start time from elapsed time
+                // Handle both new format (elapsedSessionTime) and old format (sessionStartTime)
+                let elapsedSessionTime;
+                if (sessionData.elapsedSessionTime !== undefined) {
+                    elapsedSessionTime = sessionData.elapsedSessionTime;
+                } else if (sessionData.sessionStartTime) {
+                    // Backward compatibility: convert old format to elapsed time
+                    elapsedSessionTime = Math.floor((sessionData.savedAt - sessionData.sessionStartTime) / 1000);
+                } else {
+                    elapsedSessionTime = 0;
+                }
+                sessionStartTime = Date.now() - (elapsedSessionTime * 1000);
+
                 messageCount = sessionData.messageCount;
                 lastAIResponse = sessionData.lastAIResponse;
                 initialGreeting = sessionData.initialGreeting || '';
