@@ -991,6 +991,7 @@
                 <h2>Choose a Scenario</h2>
                 <div id="scenarioSelection" class="selection-grid"></div>
 
+                <button id="resumeBtn" class="btn-secondary" style="display: none; margin-bottom: 15px;">Resume Previous Session</button>
                 <button id="startBtn" class="btn-primary" disabled>Start French Practice Session</button>
             </div>
         </div>
@@ -1441,6 +1442,7 @@
 
         function setupEventListeners() {
             document.getElementById('startBtn').addEventListener('click', startSession);
+            document.getElementById('resumeBtn').addEventListener('click', resumeSessionFromButton);
             document.getElementById('endBtn').addEventListener('click', endSession);
             document.getElementById('micBtn').addEventListener('click', toggleRecording);
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
@@ -1608,9 +1610,6 @@
             speakText(scenario.starterPrompt);
 
             showStatus('Session started. Click microphone to speak.', 'ready');
-
-            // Save initial session state
-            saveSession();
         }
 
         function startTimer() {
@@ -1718,9 +1717,6 @@ Be engaging and maintain the scenario context!`;
 
                 // Generate feedback
                 generateFeedback(userMessage, frenchText);
-
-                // Auto-save session after each message
-                saveSession();
 
                 updateMicButton('ready');
                 showStatus('Ready to continue', 'ready');
@@ -1921,8 +1917,16 @@ Be engaging and maintain the scenario context!`;
                 clearInterval(timerInterval);
             }
 
-            // Clear saved session when explicitly ending
-            clearSavedSession();
+            // Ask user if they want to save the session
+            if (sessionStartTime && conversationHistory.length > 0) {
+                if (confirm('Would you like to save this session so you can resume it later?')) {
+                    saveSession();
+                } else {
+                    clearSavedSession();
+                }
+            } else {
+                clearSavedSession();
+            }
 
             conversationHistory = [];
             messageCount = 0;
@@ -1933,6 +1937,9 @@ Be engaging and maintain the scenario context!`;
             document.getElementById('chatContainer').innerHTML = '';
             document.getElementById('conversationScreen').classList.remove('active');
             document.getElementById('setupScreen').classList.add('active');
+
+            // Update resume button visibility
+            checkForSavedSession();
         }
 
         function changeScenario() {
@@ -2108,7 +2115,12 @@ Be engaging and maintain the scenario context!`;
 
         function checkForSavedSession() {
             const savedSession = loadSession();
-            if (!savedSession) return;
+            const resumeBtn = document.getElementById('resumeBtn');
+
+            if (!savedSession) {
+                resumeBtn.style.display = 'none';
+                return;
+            }
 
             // Calculate how long ago the session was saved
             const timeSince = Date.now() - savedSession.savedAt;
@@ -2125,21 +2137,9 @@ Be engaging and maintain the scenario context!`;
             const scenarioName = SCENARIOS[savedSession.selectedScenario]?.name || 'Unknown';
             const levelName = LEVELS[savedSession.selectedLevel]?.name || 'Unknown';
 
-            // Show resume dialog
-            const resumeMessage = `Found a saved session from ${timeText}:\n\n` +
-                `Level: ${levelName}\n` +
-                `Scenario: ${scenarioName}\n` +
-                `Messages: ${savedSession.messageCount}\n\n` +
-                `Would you like to resume where you left off?`;
-
-            if (confirm(resumeMessage)) {
-                restoreSession(savedSession);
-            } else {
-                // User declined, offer to clear the saved session
-                if (confirm('Would you like to clear the saved session?')) {
-                    clearSavedSession();
-                }
-            }
+            // Update resume button text and show it
+            resumeBtn.textContent = `Resume Session (${levelName} - ${scenarioName}, ${timeText})`;
+            resumeBtn.style.display = 'block';
         }
 
         function restoreSession(sessionData) {
@@ -2199,6 +2199,15 @@ Be engaging and maintain the scenario context!`;
                 console.error('Failed to restore session:', error);
                 alert('Failed to restore session. Starting fresh.');
                 clearSavedSession();
+            }
+        }
+
+        function resumeSessionFromButton() {
+            const savedSession = loadSession();
+            if (savedSession) {
+                restoreSession(savedSession);
+                // Hide resume button after resuming
+                document.getElementById('resumeBtn').style.display = 'none';
             }
         }
 
