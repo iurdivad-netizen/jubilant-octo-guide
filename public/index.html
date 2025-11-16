@@ -9,6 +9,7 @@
 <body>
     <div class="container">
         <header>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
             <h1>🇫🇷 French Conversation Practice</h1>
             <p>Practice speaking French with AI at your level</p>
         </header>
@@ -90,6 +91,44 @@
         </div>
     </div>
 
+    <script>
+        // Theme toggle functionality
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('french_tutor_theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeToggleButton(true);
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            updateThemeToggleButton(isDark);
+            localStorage.setItem('french_tutor_theme', isDark ? 'dark' : 'light');
+        }
+
+        function updateThemeToggleButton(isDark) {
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                if (isDark) {
+                    btn.textContent = '☀️ Light Mode';
+                } else {
+                    btn.textContent = '🌙 Dark Mode';
+                }
+            }
+        }
+
+        // Load theme on page load
+        loadTheme();
+
+        // Add event listener when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+        });
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
