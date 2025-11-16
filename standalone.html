@@ -986,17 +986,11 @@
         }
 
         async function callPerplexityAPI(systemPrompt, messages, model) {
-            // Perplexity API may handle system prompts differently
-            // Prepend system prompt to first user message if needed
-            const perplexityMessages = [...messages];
-
-            // If there are messages, prepend system context to the first user message
-            if (perplexityMessages.length > 0 && perplexityMessages[0].role === 'user') {
-                perplexityMessages[0] = {
-                    role: 'user',
-                    content: `${systemPrompt}\n\nUser: ${perplexityMessages[0].content}`
-                };
-            }
+            // Perplexity uses standard OpenAI format with system messages
+            const perplexityMessages = [
+                { role: 'system', content: systemPrompt },
+                ...messages
+            ];
 
             const response = await fetch('https://api.perplexity.ai/chat/completions', {
                 method: 'POST',
@@ -1007,13 +1001,21 @@
                 body: JSON.stringify({
                     model: model || 'llama-3.1-sonar-large-128k-online',
                     max_tokens: 1024,
-                    messages: perplexityMessages
+                    messages: perplexityMessages,
+                    temperature: 0.7
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(`API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+                const errorText = await response.text();
+                let errorMessage = `API error: ${response.status}`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage += ` - ${errorData.error?.message || errorData.message || response.statusText}`;
+                } catch {
+                    errorMessage += ` - ${errorText || response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
             const data = await response.json();
             return data.choices[0].message.content;

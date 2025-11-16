@@ -272,22 +272,17 @@ class PerplexityProvider extends BaseProvider {
   }
 
   async generateResponse(systemPrompt, messages, model) {
-    // Perplexity API may handle system prompts differently
-    // Prepend system prompt to first user message if needed
-    const perplexityMessages = [...messages];
-
-    // If there are messages, prepend system context to the first user message
-    if (perplexityMessages.length > 0 && perplexityMessages[0].role === 'user') {
-      perplexityMessages[0] = {
-        role: 'user',
-        content: `${systemPrompt}\n\nUser: ${perplexityMessages[0].content}`
-      };
-    }
+    // Perplexity uses standard OpenAI format with system messages
+    const perplexityMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
 
     const response = await this.client.chat.completions.create({
       model: model || this.getDefaultModel(),
       max_tokens: 1024,
-      messages: perplexityMessages
+      messages: perplexityMessages,
+      temperature: 0.7
     });
 
     return response.choices[0].message.content;
