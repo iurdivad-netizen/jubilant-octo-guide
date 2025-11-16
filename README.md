@@ -6,7 +6,7 @@ A web application that helps you practice speaking French with AI at different s
 
 - **6 Language Levels**: From A1 (Beginner) to C2 (Mastery) following CEFR standards
 - **10 Conversation Topics**: Daily life, travel, food, work, culture, technology, health, environment, education, and social issues
-- **Multiple AI Providers**: Choose from Anthropic Claude, OpenAI GPT, Google Gemini, or Mistral AI
+- **Multiple AI Providers**: Choose from Anthropic Claude, OpenAI GPT, Google Gemini, Mistral AI, or Perplexity AI
 - **Model Selection**: Pick specific models from each provider for optimal performance
 - **Speech Recognition**: Speak in French using your microphone
 - **AI Responses**: Natural conversations powered by state-of-the-art AI
@@ -33,6 +33,7 @@ Run a full Node.js server with session management and enhanced features.
    - **OpenAI**: [platform.openai.com](https://platform.openai.com/)
    - **Google Gemini**: [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
    - **Mistral AI**: [console.mistral.ai](https://console.mistral.ai/)
+   - **Perplexity AI**: [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)
 2. Open `standalone.html` in Chrome or Edge
 3. Enter your API key(s) (stored locally in your browser)
 4. Select level, topic, and AI provider
@@ -52,6 +53,7 @@ Run a full Node.js server with session management and enhanced features.
   - **OpenAI**: [platform.openai.com](https://platform.openai.com/)
   - **Google Gemini**: [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
   - **Mistral AI**: [console.mistral.ai](https://console.mistral.ai/)
+  - **Perplexity AI**: [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)
 - A modern web browser (Chrome recommended for best speech recognition)
 
 ### Installation
@@ -82,6 +84,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 GOOGLE_API_KEY=your_google_api_key_here
 MISTRAL_API_KEY=your_mistral_api_key_here
+PERPLEXITY_API_KEY=your_perplexity_api_key_here
 ```
 
 ## Usage
@@ -149,6 +152,11 @@ The app supports multiple AI providers, each with different models and capabilit
 - **Best for**: European language focus, efficient models
 - **API**: [console.mistral.ai](https://console.mistral.ai/)
 
+### Perplexity AI
+- **Models**: Sonar Large Online, Sonar Small Online, Sonar Large Chat, Sonar Small Chat
+- **Best for**: Real-time web-connected responses, up-to-date information
+- **API**: [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)
+
 You can configure one or more providers and switch between them as needed. Each provider has different pricing and performance characteristics.
 
 ## Browser Compatibility
@@ -197,7 +205,7 @@ You can configure one or more providers and switch between them as needed. Each 
 - Makes direct API calls to selected AI provider from the browser
 - Stores conversation history in memory
 - API keys stored in browser's localStorage
-- Supports all four AI providers
+- Supports all five AI providers (Anthropic, OpenAI, Google, Mistral, Perplexity)
 
 ### Server Version
 1. **Frontend**:
@@ -208,7 +216,7 @@ You can configure one or more providers and switch between them as needed. Each 
 2. **Backend**:
    - Express server handles API requests
    - AI Provider abstraction layer (aiProviders.js)
-   - Integrates with multiple AI providers (Anthropic, OpenAI, Google, Mistral)
+   - Integrates with multiple AI providers (Anthropic, OpenAI, Google, Mistral, Perplexity)
    - Maintains conversation context per session
    - Provides level-appropriate responses
 
@@ -259,6 +267,7 @@ This app uses AI APIs which have associated costs. Pricing varies by provider:
 - **OpenAI**: Token-based pricing, monitor at [platform.openai.com](https://platform.openai.com/)
 - **Google Gemini**: Free tier available, monitor at [makersuite.google.com](https://makersuite.google.com/)
 - **Mistral AI**: Token-based pricing, monitor at [console.mistral.ai](https://console.mistral.ai/)
+- **Perplexity AI**: Token-based pricing, monitor at [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)
 
 Typical conversation: ~500-1000 tokens per exchange. Check each provider's pricing page for current rates.
 
@@ -277,5 +286,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
   - [OpenAI](https://openai.com/)
   - [Google Gemini](https://deepmind.google/technologies/gemini/)
   - [Mistral AI](https://mistral.ai/)
+  - [Perplexity AI](https://www.perplexity.ai/)
 - Uses Web Speech API for speech recognition
 - CEFR standards for language levels

@@ -4,7 +4,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 /**
  * AI Provider Factory
- * Supports multiple AI providers: Anthropic Claude, OpenAI, Google Gemini, Mistral
+ * Supports multiple AI providers: Anthropic Claude, OpenAI, Google Gemini, Mistral, Perplexity
  */
 class AIProviderFactory {
   constructor() {
@@ -31,6 +31,11 @@ class AIProviderFactory {
     // Initialize Mistral (via OpenAI-compatible API)
     if (process.env.MISTRAL_API_KEY) {
       this.providers.mistral = new MistralProvider(process.env.MISTRAL_API_KEY);
+    }
+
+    // Initialize Perplexity (via OpenAI-compatible API)
+    if (process.env.PERPLEXITY_API_KEY) {
+      this.providers.perplexity = new PerplexityProvider(process.env.PERPLEXITY_API_KEY);
     }
   }
 
@@ -235,6 +240,48 @@ class MistralProvider extends BaseProvider {
       model: model || this.getDefaultModel(),
       max_tokens: 1024,
       messages: mistralMessages
+    });
+
+    return response.choices[0].message.content;
+  }
+}
+
+/**
+ * Perplexity AI Provider (using OpenAI-compatible API)
+ */
+class PerplexityProvider extends BaseProvider {
+  constructor(apiKey) {
+    super();
+    this.client = new OpenAI({
+      apiKey: apiKey,
+      baseURL: 'https://api.perplexity.ai'
+    });
+  }
+
+  getName() {
+    return 'Perplexity AI';
+  }
+
+  getAvailableModels() {
+    return [
+      { id: 'llama-3.1-sonar-large-128k-online', name: 'Sonar Large Online' },
+      { id: 'llama-3.1-sonar-small-128k-online', name: 'Sonar Small Online' },
+      { id: 'llama-3.1-sonar-large-128k-chat', name: 'Sonar Large Chat' },
+      { id: 'llama-3.1-sonar-small-128k-chat', name: 'Sonar Small Chat' }
+    ];
+  }
+
+  async generateResponse(systemPrompt, messages, model) {
+    // Convert messages to OpenAI format (Perplexity is OpenAI-compatible)
+    const perplexityMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
+
+    const response = await this.client.chat.completions.create({
+      model: model || this.getDefaultModel(),
+      max_tokens: 1024,
+      messages: perplexityMessages
     });
 
     return response.choices[0].message.content;
