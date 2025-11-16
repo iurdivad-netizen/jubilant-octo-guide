@@ -272,7 +272,7 @@ class PerplexityProvider extends BaseProvider {
   }
 
   async generateResponse(systemPrompt, messages, model) {
-    // Convert messages to OpenAI format (Perplexity is OpenAI-compatible)
+    // Perplexity uses standard OpenAI format with system messages
     const perplexityMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
@@ -281,7 +281,8 @@ class PerplexityProvider extends BaseProvider {
     const response = await this.client.chat.completions.create({
       model: model || this.getDefaultModel(),
       max_tokens: 1024,
-      messages: perplexityMessages
+      messages: perplexityMessages,
+      temperature: 0.7
     });
 
     return response.choices[0].message.content;

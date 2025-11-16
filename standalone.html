@@ -986,6 +986,7 @@
         }
 
         async function callPerplexityAPI(systemPrompt, messages, model) {
+            // Perplexity uses standard OpenAI format with system messages
             const perplexityMessages = [
                 { role: 'system', content: systemPrompt },
                 ...messages
@@ -1000,11 +1001,22 @@
                 body: JSON.stringify({
                     model: model || 'llama-3.1-sonar-large-128k-online',
                     max_tokens: 1024,
-                    messages: perplexityMessages
+                    messages: perplexityMessages,
+                    temperature: 0.7
                 })
             });
 
-            if (!response.ok) throw new Error(`API error: ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorMessage = `API error: ${response.status}`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage += ` - ${errorData.error?.message || errorData.message || response.statusText}`;
+                } catch {
+                    errorMessage += ` - ${errorText || response.statusText}`;
+                }
+                throw new Error(errorMessage);
+            }
             const data = await response.json();
             return data.choices[0].message.content;
         }
