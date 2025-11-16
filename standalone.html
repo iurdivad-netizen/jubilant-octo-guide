@@ -1351,6 +1351,7 @@
         let messageCount = 0;
         let waveformInterval = null;
         let messageTranslations = new Map(); // Store French->English translations
+        let initialGreeting = ''; // Store initial AI greeting separately (not sent to API)
 
         // Session persistence
         const SESSION_STORAGE_KEY = 'french_tutor_session';
@@ -1581,6 +1582,7 @@
             conversationHistory = [];
             messageCount = 0;
             messageTranslations.clear();
+            initialGreeting = '';
             sessionStartTime = Date.now();
 
             const level = LEVELS[selectedLevel];
@@ -1600,8 +1602,8 @@
             // Start timer
             startTimer();
 
-            // Add AI greeting to conversation history and UI
-            conversationHistory.push({ role: 'assistant', content: scenario.starterPrompt });
+            // Store and display AI greeting (not added to conversationHistory for API)
+            initialGreeting = scenario.starterPrompt;
             addMessage('ai', scenario.starterPrompt);
             speakText(scenario.starterPrompt);
 
@@ -2057,8 +2059,8 @@ Be engaging and maintain the scenario context!`;
 
         // ===== SESSION PERSISTENCE =====
         function saveSession() {
-            if (!sessionStartTime || conversationHistory.length === 0) {
-                return; // Don't save empty sessions
+            if (!sessionStartTime) {
+                return; // Don't save if no session started
             }
 
             const sessionData = {
@@ -2068,6 +2070,7 @@ Be engaging and maintain the scenario context!`;
                 sessionStartTime,
                 messageCount,
                 lastAIResponse,
+                initialGreeting,
                 translations: Array.from(messageTranslations.entries()),
                 savedAt: Date.now()
             };
@@ -2148,6 +2151,7 @@ Be engaging and maintain the scenario context!`;
                 sessionStartTime = sessionData.sessionStartTime;
                 messageCount = sessionData.messageCount;
                 lastAIResponse = sessionData.lastAIResponse;
+                initialGreeting = sessionData.initialGreeting || '';
 
                 // Restore translations map
                 if (sessionData.translations) {
@@ -2172,6 +2176,12 @@ Be engaging and maintain the scenario context!`;
                 const chatContainer = document.getElementById('chatContainer');
                 chatContainer.innerHTML = '';
 
+                // Add initial greeting if present
+                if (initialGreeting) {
+                    addMessage('ai', initialGreeting);
+                }
+
+                // Add conversation history
                 conversationHistory.forEach((msg, index) => {
                     const translation = messageTranslations.get(msg.content);
                     addMessage(msg.role === 'user' ? 'user' : 'ai', msg.content, translation);
