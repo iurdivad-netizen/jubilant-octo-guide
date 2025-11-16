@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const Anthropic = require('@anthropic-ai/sdk');
+const AIProviderFactory = require('./aiProviders');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,9 +10,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Initialize AI Provider Factory
+const aiFactory = new AIProviderFactory();
 
 // French learning levels and their characteristics
 const LEVELS = {
@@ -95,26 +94,34 @@ const TOPICS = {
 // Store conversation history per session (in production, use proper session management)
 const conversations = new Map();
 
-// Endpoint to get available levels and topics
+// Endpoint to get available levels, topics, and AI providers
 app.get('/api/config', (req, res) => {
   res.json({
     levels: LEVELS,
-    topics: TOPICS
+    topics: TOPICS,
+    providers: aiFactory.getAvailableProviders()
   });
 });
 
 // Endpoint to start a new conversation
 app.post('/api/conversation/start', (req, res) => {
-  const { level, topic } = req.body;
+  const { level, topic, provider, model } = req.body;
   const sessionId = Date.now().toString();
+
+  // Default to anthropic if not specified or if provider not available
+  const selectedProvider = provider && aiFactory.getAvailableProviders().some(p => p.id === provider)
+    ? provider
+    : (aiFactory.getAvailableProviders()[0]?.id || 'anthropic');
 
   conversations.set(sessionId, {
     level,
     topic,
+    provider: selectedProvider,
+    model: model || null, // null means use default model for provider
     messages: []
   });
 
-  res.json({ sessionId });
+  res.json({ sessionId, provider: selectedProvider });
 });
 
 // Endpoint to send a message and get AI response
@@ -153,15 +160,13 @@ Instructions for your responses:
 
 Remember: You are having a natural conversation in French. Be friendly and engaging!`;
 
-    // Call Claude API
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: session.messages
-    });
-
-    const aiMessage = response.content[0].text;
+    // Get AI provider and generate response
+    const provider = aiFactory.getProvider(session.provider);
+    const aiMessage = await provider.generateResponse(
+      systemPrompt,
+      session.messages,
+      session.model
+    );
 
     // Add AI response to history
     session.messages.push({

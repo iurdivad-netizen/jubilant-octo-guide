@@ -4,6 +4,9 @@ const API_URL = window.location.origin;
 // Global state
 let selectedLevel = null;
 let selectedTopic = null;
+let selectedProvider = null;
+let selectedModel = null;
+let availableProviders = [];
 let sessionId = null;
 let recognition = null;
 let synthesis = window.speechSynthesis;
@@ -26,6 +29,15 @@ async function loadConfig() {
 
         renderLevels(config.levels);
         renderTopics(config.topics);
+
+        if (config.providers && config.providers.length > 0) {
+            availableProviders = config.providers;
+            renderProviders(config.providers);
+        } else {
+            // Show error if no providers are available
+            const providerContainer = document.getElementById('providerSelection');
+            providerContainer.innerHTML = '<p class="error-message">No AI providers configured. Please add API keys to your .env file.</p>';
+        }
     } catch (error) {
         console.error('Failed to load configuration:', error);
         showStatus('Failed to load configuration. Please refresh the page.', 'error');
@@ -68,6 +80,24 @@ function renderTopics(topics) {
     });
 }
 
+// Render provider selection
+function renderProviders(providers) {
+    const container = document.getElementById('providerSelection');
+    container.innerHTML = '';
+
+    providers.forEach(provider => {
+        const card = document.createElement('div');
+        card.className = 'selection-card';
+        card.dataset.value = provider.id;
+        card.innerHTML = `
+            <h3>${provider.name}</h3>
+            <p>${provider.models.length} models available</p>
+        `;
+        card.addEventListener('click', () => selectProvider(provider.id, card));
+        container.appendChild(card);
+    });
+}
+
 // Select level
 function selectLevel(level, card) {
     selectedLevel = level;
@@ -94,10 +124,46 @@ function selectTopic(topic, card) {
     checkCanStart();
 }
 
+// Select provider
+function selectProvider(providerId, card) {
+    selectedProvider = providerId;
+
+    // Update UI
+    document.querySelectorAll('#providerSelection .selection-card').forEach(c => {
+        c.classList.remove('selected');
+    });
+    card.classList.add('selected');
+
+    // Update model selection
+    const provider = availableProviders.find(p => p.id === providerId);
+    if (provider && provider.models.length > 0) {
+        updateModelSelection(provider.models);
+    }
+
+    checkCanStart();
+}
+
+// Update model selection dropdown
+function updateModelSelection(models) {
+    const modelSelection = document.getElementById('modelSelection');
+    const modelSelect = document.getElementById('modelSelect');
+
+    modelSelect.innerHTML = '<option value="">Default Model</option>';
+
+    models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.name;
+        modelSelect.appendChild(option);
+    });
+
+    modelSelection.style.display = 'block';
+}
+
 // Check if we can start the conversation
 function checkCanStart() {
     const startBtn = document.getElementById('startBtn');
-    if (selectedLevel && selectedTopic) {
+    if (selectedLevel && selectedTopic && selectedProvider) {
         startBtn.disabled = false;
     }
 }
@@ -207,12 +273,17 @@ function updateMicButton() {
 // Start conversation
 async function startConversation() {
     try {
+        const modelSelect = document.getElementById('modelSelect');
+        selectedModel = modelSelect.value || null;
+
         const response = await fetch(`${API_URL}/api/conversation/start`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 level: selectedLevel,
-                topic: selectedTopic
+                topic: selectedTopic,
+                provider: selectedProvider,
+                model: selectedModel
             })
         });
 
