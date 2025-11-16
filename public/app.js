@@ -14,11 +14,17 @@ let isRecording = false;
 let currentTranscript = '';
 let lastAIResponse = '';
 
+// Session persistence
+const SESSION_STORAGE_KEY = 'french_tutor_server_session';
+let conversationHistory = [];
+let sessionStartTime = null;
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
     setupEventListeners();
     setupSpeechRecognition();
+    checkForSavedSession();
 });
 
 // Load levels and topics from server
@@ -273,6 +279,9 @@ function updateMicButton() {
 // Start conversation
 async function startConversation() {
     try {
+        // Clear any previous session
+        clearSavedSession();
+
         const modelSelect = document.getElementById('modelSelect');
         selectedModel = modelSelect.value || null;
 
@@ -289,6 +298,8 @@ async function startConversation() {
 
         const data = await response.json();
         sessionId = data.sessionId;
+        sessionStartTime = Date.now();
+        conversationHistory = [];
 
         // Update UI
         document.getElementById('currentLevel').textContent = selectedLevel;
@@ -299,9 +310,14 @@ async function startConversation() {
         document.getElementById('conversationScreen').classList.add('active');
 
         // Add welcome message
-        addMessage('ai', 'Bonjour! Ready to practice French? Start speaking by clicking the microphone button!');
+        const welcomeMsg = 'Bonjour! Ready to practice French? Start speaking by clicking the microphone button!';
+        addMessage('ai', welcomeMsg);
+        conversationHistory.push({ role: 'assistant', content: welcomeMsg });
 
         showStatus('Conversation started. Click the microphone to speak.', 'ready');
+
+        // Save initial session state
+        saveSession();
     } catch (error) {
         console.error('Failed to start conversation:', error);
         showStatus('Failed to start conversation. Please try again.', 'error');
@@ -317,6 +333,8 @@ async function sendMessage() {
 
     // Update UI
     addMessage('user', userMessage);
+    conversationHistory.push({ role: 'user', content: userMessage });
+
     document.getElementById('transcriptionText').textContent = 'Click microphone to start speaking...';
     document.getElementById('sendBtn').disabled = true;
     showStatus('AI is thinking...', 'thinking');
@@ -334,6 +352,10 @@ async function sendMessage() {
         const data = await response.json();
         lastAIResponse = data.response;
         addMessage('ai', data.response);
+        conversationHistory.push({ role: 'assistant', content: data.response });
+
+        // Auto-save session after each message
+        saveSession();
 
         // Automatically speak the AI response
         speakText(data.response);
@@ -342,6 +364,8 @@ async function sendMessage() {
     } catch (error) {
         console.error('Failed to send message:', error);
         showStatus('Failed to get response. Please try again.', 'error');
+        // Remove the user message from history if the request failed
+        conversationHistory.pop();
     }
 }
 
@@ -401,10 +425,15 @@ async function endConversation() {
         }
     }
 
+    // Clear saved session when explicitly ending
+    clearSavedSession();
+
     // Reset state
     sessionId = null;
     lastAIResponse = '';
     currentTranscript = '';
+    conversationHistory = [];
+    sessionStartTime = null;
 
     // Clear chat
     document.getElementById('chatContainer').innerHTML = '';
@@ -428,4 +457,124 @@ if (synthesis.onvoiceschanged !== undefined) {
     synthesis.onvoiceschanged = () => {
         synthesis.getVoices();
     };
+}
+
+// ===== SESSION PERSISTENCE =====
+function saveSession() {
+    if (!sessionId || !sessionStartTime || conversationHistory.length === 0) {
+        return; // Don't save empty sessions
+    }
+
+    const sessionData = {
+        selectedLevel,
+        selectedTopic,
+        selectedProvider,
+        selectedModel,
+        sessionId,
+        conversationHistory,
+        sessionStartTime,
+        lastAIResponse,
+        savedAt: Date.now()
+    };
+
+    try {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+        console.log('Session saved successfully');
+    } catch (error) {
+        console.error('Failed to save session:', error);
+    }
+}
+
+function loadSession() {
+    try {
+        const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (!stored) return null;
+
+        const sessionData = JSON.parse(stored);
+        console.log('Loaded session:', sessionData);
+        return sessionData;
+    } catch (error) {
+        console.error('Failed to load session:', error);
+        return null;
+    }
+}
+
+function clearSavedSession() {
+    try {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        console.log('Saved session cleared');
+    } catch (error) {
+        console.error('Failed to clear session:', error);
+    }
+}
+
+function checkForSavedSession() {
+    const savedSession = loadSession();
+    if (!savedSession) return;
+
+    // Calculate how long ago the session was saved
+    const timeSince = Date.now() - savedSession.savedAt;
+    const hoursSince = Math.floor(timeSince / (1000 * 60 * 60));
+    const minutesSince = Math.floor(timeSince / (1000 * 60));
+
+    let timeText = '';
+    if (hoursSince > 0) {
+        timeText = `${hoursSince} hour${hoursSince > 1 ? 's' : ''} ago`;
+    } else {
+        timeText = `${minutesSince} minute${minutesSince > 1 ? 's' : ''} ago`;
+    }
+
+    // Show resume dialog
+    const resumeMessage = `Found a saved session from ${timeText}:\n\n` +
+        `Level: ${savedSession.selectedLevel}\n` +
+        `Topic: ${savedSession.selectedTopic}\n` +
+        `Provider: ${savedSession.selectedProvider}\n` +
+        `Messages: ${savedSession.conversationHistory.length}\n\n` +
+        `Would you like to resume where you left off?`;
+
+    if (confirm(resumeMessage)) {
+        restoreSession(savedSession);
+    } else {
+        // User declined, offer to clear the saved session
+        if (confirm('Would you like to clear the saved session?')) {
+            clearSavedSession();
+        }
+    }
+}
+
+function restoreSession(sessionData) {
+    try {
+        // Restore state
+        selectedLevel = sessionData.selectedLevel;
+        selectedTopic = sessionData.selectedTopic;
+        selectedProvider = sessionData.selectedProvider;
+        selectedModel = sessionData.selectedModel;
+        sessionId = sessionData.sessionId;
+        conversationHistory = sessionData.conversationHistory;
+        sessionStartTime = sessionData.sessionStartTime;
+        lastAIResponse = sessionData.lastAIResponse;
+
+        // Update UI
+        document.getElementById('currentLevel').textContent = selectedLevel;
+        document.getElementById('currentTopic').textContent = selectedTopic;
+
+        // Switch screens
+        document.getElementById('setupScreen').classList.remove('active');
+        document.getElementById('conversationScreen').classList.add('active');
+
+        // Restore chat messages
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.innerHTML = '';
+
+        conversationHistory.forEach((msg) => {
+            addMessage(msg.role === 'user' ? 'user' : 'ai', msg.content);
+        });
+
+        showStatus('Session restored. Click microphone to continue.', 'ready');
+        console.log('Session restored successfully');
+    } catch (error) {
+        console.error('Failed to restore session:', error);
+        alert('Failed to restore session. Starting fresh.');
+        clearSavedSession();
+    }
 }

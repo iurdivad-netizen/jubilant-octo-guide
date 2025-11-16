@@ -1352,6 +1352,9 @@
         let waveformInterval = null;
         let messageTranslations = new Map(); // Store French->English translations
 
+        // Session persistence
+        const SESSION_STORAGE_KEY = 'french_tutor_session';
+
         // Settings state
         let settings = {
             accent: 'fr-FR',
@@ -1375,6 +1378,7 @@
             setupSpeechRecognition();
             loadSettings();
             loadTheme();
+            checkForSavedSession();
         });
 
         function loadApiKey() {
@@ -1571,8 +1575,12 @@
         }
 
         function startSession() {
+            // Clear any previous session
+            clearSavedSession();
+
             conversationHistory = [];
             messageCount = 0;
+            messageTranslations.clear();
             sessionStartTime = Date.now();
 
             const level = LEVELS[selectedLevel];
@@ -1597,6 +1605,9 @@
             speakText(scenario.starterPrompt);
 
             showStatus('Session started. Click microphone to speak.', 'ready');
+
+            // Save initial session state
+            saveSession();
         }
 
         function startTimer() {
@@ -1704,6 +1715,9 @@ Be engaging and maintain the scenario context!`;
 
                 // Generate feedback
                 generateFeedback(userMessage, frenchText);
+
+                // Auto-save session after each message
+                saveSession();
 
                 updateMicButton('ready');
                 showStatus('Ready to continue', 'ready');
@@ -1904,10 +1918,14 @@ Be engaging and maintain the scenario context!`;
                 clearInterval(timerInterval);
             }
 
+            // Clear saved session when explicitly ending
+            clearSavedSession();
+
             conversationHistory = [];
             messageCount = 0;
             lastAIResponse = '';
             currentTranscript = '';
+            messageTranslations.clear();
 
             document.getElementById('chatContainer').innerHTML = '';
             document.getElementById('conversationScreen').classList.remove('active');
@@ -2033,6 +2051,143 @@ Be engaging and maintain the scenario context!`;
                 btn.textContent = '☀️ Light Mode';
             } else {
                 btn.textContent = '🌙 Dark Mode';
+            }
+        }
+
+        // ===== SESSION PERSISTENCE =====
+        function saveSession() {
+            if (!sessionStartTime || conversationHistory.length === 0) {
+                return; // Don't save empty sessions
+            }
+
+            const sessionData = {
+                selectedLevel,
+                selectedScenario,
+                conversationHistory,
+                sessionStartTime,
+                messageCount,
+                lastAIResponse,
+                translations: Array.from(messageTranslations.entries()),
+                savedAt: Date.now()
+            };
+
+            try {
+                localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+                console.log('Session saved successfully');
+            } catch (error) {
+                console.error('Failed to save session:', error);
+            }
+        }
+
+        function loadSession() {
+            try {
+                const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+                if (!stored) return null;
+
+                const sessionData = JSON.parse(stored);
+                console.log('Loaded session:', sessionData);
+                return sessionData;
+            } catch (error) {
+                console.error('Failed to load session:', error);
+                return null;
+            }
+        }
+
+        function clearSavedSession() {
+            try {
+                localStorage.removeItem(SESSION_STORAGE_KEY);
+                console.log('Saved session cleared');
+            } catch (error) {
+                console.error('Failed to clear session:', error);
+            }
+        }
+
+        function checkForSavedSession() {
+            const savedSession = loadSession();
+            if (!savedSession) return;
+
+            // Calculate how long ago the session was saved
+            const timeSince = Date.now() - savedSession.savedAt;
+            const hoursSince = Math.floor(timeSince / (1000 * 60 * 60));
+            const minutesSince = Math.floor(timeSince / (1000 * 60));
+
+            let timeText = '';
+            if (hoursSince > 0) {
+                timeText = `${hoursSince} hour${hoursSince > 1 ? 's' : ''} ago`;
+            } else {
+                timeText = `${minutesSince} minute${minutesSince > 1 ? 's' : ''} ago`;
+            }
+
+            const scenarioName = SCENARIOS[savedSession.selectedScenario]?.name || 'Unknown';
+            const levelName = LEVELS[savedSession.selectedLevel]?.name || 'Unknown';
+
+            // Show resume dialog
+            const resumeMessage = `Found a saved session from ${timeText}:\n\n` +
+                `Level: ${levelName}\n` +
+                `Scenario: ${scenarioName}\n` +
+                `Messages: ${savedSession.messageCount}\n\n` +
+                `Would you like to resume where you left off?`;
+
+            if (confirm(resumeMessage)) {
+                restoreSession(savedSession);
+            } else {
+                // User declined, offer to clear the saved session
+                if (confirm('Would you like to clear the saved session?')) {
+                    clearSavedSession();
+                }
+            }
+        }
+
+        function restoreSession(sessionData) {
+            try {
+                // Restore state
+                selectedLevel = sessionData.selectedLevel;
+                selectedScenario = sessionData.selectedScenario;
+                conversationHistory = sessionData.conversationHistory;
+                sessionStartTime = sessionData.sessionStartTime;
+                messageCount = sessionData.messageCount;
+                lastAIResponse = sessionData.lastAIResponse;
+
+                // Restore translations map
+                if (sessionData.translations) {
+                    messageTranslations = new Map(sessionData.translations);
+                }
+
+                const level = LEVELS[selectedLevel];
+                const scenario = SCENARIOS[selectedScenario];
+
+                // Update UI
+                document.getElementById('scenarioTitle').textContent = scenario.name;
+                document.getElementById('difficultyBadge').textContent = level.name;
+                document.getElementById('difficultyBadge').className = `difficulty-badge ${level.badge}`;
+                document.getElementById('learningObjectives').textContent = scenario.objectives;
+                document.getElementById('contextInstructions').textContent = scenario.context;
+
+                // Switch screens
+                document.getElementById('setupScreen').classList.remove('active');
+                document.getElementById('conversationScreen').classList.add('active');
+
+                // Restore chat messages
+                const chatContainer = document.getElementById('chatContainer');
+                chatContainer.innerHTML = '';
+
+                conversationHistory.forEach((msg, index) => {
+                    const translation = messageTranslations.get(msg.content);
+                    addMessage(msg.role === 'user' ? 'user' : 'ai', msg.content, translation);
+                });
+
+                // Start timer from saved time
+                startTimer();
+
+                // Update message count
+                document.getElementById('messageCount').textContent = `${messageCount} messages`;
+
+                showStatus('Session restored. Click microphone to continue.', 'ready');
+                console.log('Session restored successfully');
+            } catch (error) {
+                console.error('Failed to restore session:', error);
+                alert('Failed to restore session. Starting fresh.');
+                clearSavedSession();
             }
         }
 
