@@ -153,7 +153,7 @@ The app supports multiple AI providers, each with different models and capabilit
 - **API**: [console.mistral.ai](https://console.mistral.ai/)
 
 ### Perplexity AI
-- **Models**: Sonar Large Online, Sonar Small Online, Sonar Large Chat, Sonar Small Chat
+- **Models**: Sonar Pro, Sonar, Sonar Reasoning
 - **Best for**: Real-time web-connected responses, up-to-date information
 - **API**: [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)
 
