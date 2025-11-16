@@ -264,10 +264,9 @@ class PerplexityProvider extends BaseProvider {
 
   getAvailableModels() {
     return [
-      { id: 'llama-3.1-sonar-large-128k-online', name: 'Sonar Large Online' },
-      { id: 'llama-3.1-sonar-small-128k-online', name: 'Sonar Small Online' },
-      { id: 'llama-3.1-sonar-large-128k-chat', name: 'Sonar Large Chat' },
-      { id: 'llama-3.1-sonar-small-128k-chat', name: 'Sonar Small Chat' }
+      { id: 'sonar-pro', name: 'Sonar Pro' },
+      { id: 'sonar', name: 'Sonar' },
+      { id: 'sonar-reasoning', name: 'Sonar Reasoning' }
     ];
   }
 
