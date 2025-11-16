@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>French AI Conversation Practice - Standalone</title>
+    <title>French Voice Tutor v3</title>
     <style>
         * {
             margin: 0;
@@ -11,22 +11,53 @@
             box-sizing: border-box;
         }
 
+        :root {
+            /* French Flag Colors - Primary */
+            --french-blue: #0055B8;
+            --french-white: #FFFFFF;
+            --french-red: #EF2B2D;
+            --gold-accent: #D4AF37;
+
+            /* User Messages */
+            --user-msg-bg: #E3F2FD;
+
+            /* Status Colors */
+            --status-ready: #EF2B2D;
+            --status-listening: #4CAF50;
+            --status-processing: #FFC107;
+            --status-speaking: #2196F3;
+            --status-error: #EF4444;
+
+            /* Difficulty Badge Colors */
+            --beginner-color: #4CAF50;
+            --intermediate-color: #2196F3;
+            --advanced-color: #9C27B0;
+
+            /* UI Colors */
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --border-color: #e0e0e0;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-light: #999;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         header h1 {
@@ -40,6 +71,7 @@
             opacity: 0.9;
         }
 
+        /* Screens */
         .screen {
             display: none;
             background: white;
@@ -54,26 +86,11 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .setup-container h2 {
-            color: #333;
-            margin-bottom: 20px;
-            margin-top: 30px;
-        }
-
-        .setup-container h2:first-child {
-            margin-top: 0;
-        }
-
+        /* Setup Screen */
         .api-key-section {
             background: #f9f9f9;
             padding: 20px;
@@ -84,13 +101,13 @@
         .api-key-section h2 {
             margin-top: 0;
             margin-bottom: 15px;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .api-key-section input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 1rem;
             margin-bottom: 10px;
@@ -98,17 +115,17 @@
 
         .api-key-section input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--french-blue);
         }
 
-        .api-key-section small {
-            color: #666;
-            display: block;
-            margin-top: 5px;
+        .setup-container h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            margin-top: 30px;
         }
 
-        .api-key-section a {
-            color: #667eea;
+        .setup-container h2:first-child {
+            margin-top: 0;
         }
 
         .selection-grid {
@@ -120,7 +137,7 @@
 
         .selection-card {
             padding: 20px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -128,14 +145,14 @@
         }
 
         .selection-card:hover {
-            border-color: #667eea;
+            border-color: var(--french-blue);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 85, 184, 0.2);
         }
 
         .selection-card.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: var(--french-blue);
+            background: var(--french-blue);
             color: white;
         }
 
@@ -153,53 +170,33 @@
             margin-bottom: 20px;
         }
 
-        .model-selection h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-
         .model-select {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             font-size: 1rem;
             background: white;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .model-select:hover {
-            border-color: #667eea;
-        }
-
-        .model-select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn-primary, .btn-secondary {
+        .btn-primary {
             padding: 15px 40px;
             border: none;
             border-radius: 30px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--french-blue);
             color: white;
             width: 100%;
             margin-top: 20px;
+            transition: all 0.3s ease;
         }
 
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 85, 184, 0.4);
         }
 
         .btn-primary:disabled {
@@ -207,64 +204,138 @@
             cursor: not-allowed;
         }
 
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #333;
-            padding: 10px 20px;
-            font-size: 0.9rem;
+        /* 4-Panel Conversation Layout */
+        .conversation-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 20px;
+            height: calc(100vh - 200px);
+            min-height: 600px;
         }
 
-        .btn-secondary:hover {
-            background: #e0e0e0;
+        /* Top Left: Scenario & Context Panel */
+        .scenario-panel {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
         }
 
-        .conversation-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .scenario-title {
+            font-size: 1.3rem;
+            color: var(--french-blue);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-badge.beginner { background: var(--beginner-color); color: white; }
+        .difficulty-badge.intermediate { background: var(--intermediate-color); color: white; }
+        .difficulty-badge.advanced { background: var(--advanced-color); color: white; }
+
+        .session-timer {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--french-blue);
+            margin-bottom: 15px;
+        }
+
+        .learning-objectives,
+        .context-instructions {
             margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
         }
 
-        .session-info {
+        .learning-objectives h3,
+        .context-instructions h3 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .learning-objectives p,
+        .context-instructions p {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .quick-actions {
+            margin-top: 20px;
             display: flex;
+            flex-direction: column;
             gap: 10px;
         }
 
-        .badge {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-secondary {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: var(--french-blue);
             color: white;
-            border-radius: 20px;
             font-size: 0.9rem;
-            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #003d82;
+        }
+
+        /* Center: Chat Display */
+        .chat-panel {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .chat-header h2 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
         }
 
         .chat-container {
-            height: 400px;
+            flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f9f9f9;
+            padding: 15px;
+            background: white;
             border-radius: 12px;
-            margin-bottom: 20px;
         }
 
         .message {
             display: flex;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             animation: slideIn 0.3s ease-out;
         }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
@@ -275,108 +346,332 @@
             justify-content: flex-start;
         }
 
-        .message-bubble {
+        .message-content {
             max-width: 70%;
-            padding: 12px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .message-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: var(--french-blue);
+            color: white;
+        }
+
+        .message.ai .message-label {
+            background: var(--gold-accent);
+        }
+
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
             border-radius: 18px;
             font-size: 1rem;
             line-height: 1.5;
+            position: relative;
         }
 
         .message.user .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--user-msg-bg);
+            color: var(--text-primary);
+            border: 1px solid #BBDEFB;
         }
 
         .message.ai .message-bubble {
             background: white;
-            color: #333;
-            border: 1px solid #e0e0e0;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .input-container {
+        .message-status {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .translation-toggle {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: var(--french-blue);
+            transition: all 0.2s ease;
+        }
+
+        .translation-toggle:hover {
+            background: #e0e0e0;
+        }
+
+        .translation-text {
+            margin-top: 10px;
+            padding: 10px;
+            background: #FFF9E6;
+            border-left: 3px solid var(--gold-accent);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .translation-text.visible {
+            display: block;
+        }
+
+        /* Top Right: Feedback & Learning Panel */
+        .feedback-panel {
+            grid-column: 3;
+            grid-row: 1 / 3;
             background: #f9f9f9;
-            padding: 20px;
             border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
+        }
+
+        .feedback-header h3 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .feedback-badge {
+            background: var(--french-red);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .feedback-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .feedback-section h4 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .feedback-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .feedback-item.correction {
+            border-left: 3px solid #FFC107;
+        }
+
+        .feedback-item.praise {
+            border-left: 3px solid var(--beginner-color);
+            background: #E8F5E9;
+        }
+
+        .pronunciation-word {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        .pronunciation-word:hover {
+            background: #e9e9e9;
+        }
+
+        .pronunciation-word .word {
+            font-weight: 600;
+            color: var(--french-blue);
+        }
+
+        .pronunciation-word .guide {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .suggested-topics {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .topic-suggestion {
+            padding: 10px;
+            background: var(--user-msg-bg);
+            border: 1px solid #BBDEFB;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .topic-suggestion:hover {
+            background: #BBDEFB;
+        }
+
+        .btn-hear-again {
+            width: 100%;
+            padding: 12px;
+            background: var(--french-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-hear-again:hover {
+            background: #003d82;
+        }
+
+        /* Bottom Center: Voice Controls */
+        .voice-controls-panel {
+            grid-column: 1 / 4;
+            grid-row: 3;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
         }
 
         .transcription-box {
-            background: white;
-            border: 2px solid #e0e0e0;
+            background: #f9f9f9;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            min-height: 80px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 100px;
         }
 
         .transcription-text {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 5px;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
         }
 
         .interim-text {
             font-size: 1rem;
-            color: #999;
+            color: var(--text-light);
             font-style: italic;
         }
 
-        .controls {
+        .controls-container {
             display: flex;
-            gap: 10px;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
         }
 
-        .btn-mic, .btn-speak {
-            width: 60px;
+        .waveform-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
             height: 60px;
+            margin-bottom: 15px;
+        }
+
+        .waveform-bar {
+            width: 4px;
+            background: var(--french-blue);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .btn-mic {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--status-ready);
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
-        .btn-mic:hover, .btn-speak:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        .btn-mic:hover {
+            transform: scale(1.05);
         }
 
         .btn-mic.recording {
-            background: #ef4444;
+            background: var(--status-listening);
             animation: pulse 1.5s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-            }
-            50% {
-                box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
-            }
+        .btn-mic.processing {
+            background: var(--status-processing);
         }
 
-        .btn-send {
-            padding: 15px 40px;
+        .btn-mic.speaking {
+            background: var(--status-speaking);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            50% { box-shadow: 0 0 0 20px rgba(76, 175, 80, 0); }
+        }
+
+        .mic-status-text {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .btn-control {
+            padding: 12px 30px;
             border: none;
-            border-radius: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            border-radius: 25px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .btn-send:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .btn-send {
+            background: var(--french-blue);
+            color: white;
         }
 
         .btn-send:disabled {
@@ -384,70 +679,208 @@
             cursor: not-allowed;
         }
 
+        .btn-speak,
+        .btn-settings {
+            background: #f0f0f0;
+            color: var(--text-primary);
+        }
+
+        .btn-speak:hover,
+        .btn-settings:hover {
+            background: #e0e0e0;
+        }
+
         .status-bar {
             text-align: center;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
             background: #f0f0f0;
+            border-radius: 8px;
         }
 
         #statusText {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
-        #statusText.listening {
-            color: #667eea;
+        /* Settings Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .settings-group {
+            margin-bottom: 30px;
+        }
+
+        .settings-group h3 {
+            font-size: 1.1rem;
+            color: var(--french-blue);
+            margin-bottom: 15px;
+        }
+
+        .settings-item {
+            margin-bottom: 20px;
+        }
+
+        .settings-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .settings-item select,
+        .settings-item input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            color: var(--french-blue);
             font-weight: 600;
         }
 
-        #statusText.thinking {
-            color: #764ba2;
-            font-weight: 600;
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
         }
 
-        #statusText.error {
-            color: #ef4444;
-            font-weight: 600;
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
 
-        .chat-container::-webkit-scrollbar {
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--french-blue);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Scrollbar styling */
+        .chat-container::-webkit-scrollbar,
+        .scenario-panel::-webkit-scrollbar,
+        .feedback-panel::-webkit-scrollbar,
+        .modal-content::-webkit-scrollbar {
             width: 8px;
         }
 
-        .chat-container::-webkit-scrollbar-track {
+        .chat-container::-webkit-scrollbar-track,
+        .scenario-panel::-webkit-scrollbar-track,
+        .feedback-panel::-webkit-scrollbar-track,
+        .modal-content::-webkit-scrollbar-track {
             background: #f0f0f0;
             border-radius: 4px;
         }
 
-        .chat-container::-webkit-scrollbar-thumb {
-            background: #667eea;
+        .chat-container::-webkit-scrollbar-thumb,
+        .scenario-panel::-webkit-scrollbar-thumb,
+        .feedback-panel::-webkit-scrollbar-thumb,
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--french-blue);
             border-radius: 4px;
         }
 
-        .chat-container::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
-            }
-
-            .screen {
-                padding: 20px;
-            }
-
-            .selection-grid {
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .conversation-layout {
                 grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
             }
 
-            .chat-container {
-                height: 300px;
+            .scenario-panel {
+                grid-column: 1;
+                grid-row: 1;
             }
 
-            .message-bubble {
-                max-width: 85%;
+            .chat-panel {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .feedback-panel {
+                grid-column: 1;
+                grid-row: 3;
+            }
+
+            .voice-controls-panel {
+                grid-column: 1;
+                grid-row: 4;
             }
         }
     </style>
@@ -455,269 +888,430 @@
 <body>
     <div class="container">
         <header>
-            <h1>🇫🇷 French Conversation Practice</h1>
-            <p>Practice speaking French with AI at your level</p>
+            <h1>🇫🇷 French Voice Tutor v3</h1>
+            <p>Professional Voice-Based French Learning with AI</p>
         </header>
 
+        <!-- Setup Screen -->
         <div id="setupScreen" class="screen active">
             <div class="setup-container">
                 <div class="api-key-section">
                     <h2>API Configuration</h2>
-                    <p style="margin-bottom: 15px; color: #666;">Enter API key(s) for the provider(s) you want to use. Keys are stored locally in your browser.</p>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Anthropic Claude</label>
-                        <input type="password" id="anthropicKeyInput" placeholder="Enter Anthropic API key">
-                        <small>Get from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a></small>
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">OpenAI</label>
-                        <input type="password" id="openaiKeyInput" placeholder="Enter OpenAI API key">
-                        <small>Get from <a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a></small>
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Google Gemini</label>
-                        <input type="password" id="googleKeyInput" placeholder="Enter Google API key">
-                        <small>Get from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Mistral AI</label>
-                        <input type="password" id="mistralKeyInput" placeholder="Enter Mistral API key">
-                        <small>Get from <a href="https://console.mistral.ai/" target="_blank">Mistral Console</a></small>
-                    </div>
-
+                    <p style="margin-bottom: 15px; color: #666;">Enter your Perplexity API key to begin.</p>
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Perplexity AI</label>
                         <input type="password" id="perplexityKeyInput" placeholder="Enter Perplexity API key">
-                        <small>Get from <a href="https://www.perplexity.ai/settings/api" target="_blank">Perplexity Settings</a></small>
+                        <small style="color: #666; display: block; margin-top: 5px;">Get from <a href="https://www.perplexity.ai/settings/api" target="_blank" style="color: var(--french-blue);">Perplexity Settings</a></small>
                     </div>
                 </div>
 
-                <h2>Choose Your Level</h2>
+                <h2>Choose Your Proficiency Level</h2>
                 <div id="levelSelection" class="selection-grid"></div>
 
-                <h2>Choose a Topic</h2>
-                <div id="topicSelection" class="selection-grid"></div>
+                <h2>Choose a Scenario</h2>
+                <div id="scenarioSelection" class="selection-grid"></div>
 
-                <h2>Choose AI Provider</h2>
-                <div id="providerSelection" class="selection-grid"></div>
-
-                <div id="modelSelection" class="model-selection" style="display: none;">
-                    <h3>Choose Model (Optional)</h3>
-                    <select id="modelSelect" class="model-select">
-                        <option value="">Default Model</option>
-                    </select>
-                </div>
-
-                <button id="startBtn" class="btn-primary" disabled>Start Conversation</button>
+                <button id="startBtn" class="btn-primary" disabled>Start French Practice Session</button>
             </div>
         </div>
 
+        <!-- Conversation Screen with 4-Panel Layout -->
         <div id="conversationScreen" class="screen">
-            <div class="conversation-header">
-                <div class="session-info">
-                    <span id="currentLevel" class="badge"></span>
-                    <span id="currentTopic" class="badge"></span>
-                </div>
-                <button id="endBtn" class="btn-secondary">End Conversation</button>
-            </div>
+            <div class="conversation-layout">
+                <!-- Top Left: Scenario & Context Panel -->
+                <div class="scenario-panel">
+                    <div class="scenario-title" id="scenarioTitle">Casual Conversation</div>
+                    <div class="difficulty-badge beginner" id="difficultyBadge">Beginner (A1)</div>
+                    <div class="session-timer" id="sessionTimer">00:00</div>
 
-            <div id="chatContainer" class="chat-container"></div>
-
-            <div class="input-container">
-                <div class="transcription-box">
-                    <div id="transcriptionText" class="transcription-text">
-                        Click microphone to start speaking...
+                    <div class="learning-objectives">
+                        <h3>Learning Objectives</h3>
+                        <p id="learningObjectives">Practice basic French conversation...</p>
                     </div>
-                    <div id="interimText" class="interim-text"></div>
+
+                    <div class="context-instructions">
+                        <h3>Context</h3>
+                        <p id="contextInstructions">You are having a friendly conversation in French...</p>
+                    </div>
+
+                    <div class="quick-actions">
+                        <button class="btn-secondary" id="changeScenarioBtn">Change Scenario</button>
+                        <button class="btn-secondary" id="settingsBtn">Settings</button>
+                        <button class="btn-secondary" id="exportBtn">Export Conversation</button>
+                        <button class="btn-secondary" id="endBtn">End Session</button>
+                    </div>
                 </div>
 
-                <div class="controls">
-                    <button id="micBtn" class="btn-mic" title="Click to speak">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                            <line x1="12" y1="19" x2="12" y2="23"></line>
-                            <line x1="8" y1="23" x2="16" y2="23"></line>
-                        </svg>
-                    </button>
-                    <button id="sendBtn" class="btn-send" disabled>Send</button>
-                    <button id="speakBtn" class="btn-speak" title="Hear AI response">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                        </svg>
-                    </button>
+                <!-- Center: Chat Display -->
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <h2>Conversation</h2>
+                        <span id="messageCount" style="color: var(--text-secondary); font-size: 0.9rem;">0 messages</span>
+                    </div>
+                    <div class="chat-container" id="chatContainer">
+                        <!-- Messages will be added here -->
+                    </div>
+                </div>
+
+                <!-- Top Right: Feedback & Learning Panel -->
+                <div class="feedback-panel">
+                    <div class="feedback-header">
+                        <h3>Learning Feedback</h3>
+                        <span class="feedback-badge" id="feedbackCount">0</span>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Pronunciation Guide</h4>
+                        <div id="pronunciationGuide">
+                            <p style="color: var(--text-light); font-size: 0.9rem;">Speak to get pronunciation feedback...</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Grammar Tips</h4>
+                        <div id="grammarFeedback">
+                            <p style="color: var(--text-light); font-size: 0.9rem;">Your grammar corrections will appear here...</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Vocabulary Suggestions</h4>
+                        <div id="vocabularySuggestions">
+                            <p style="color: var(--text-light); font-size: 0.9rem;">Alternative phrases will appear here...</p>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Encouragement</h4>
+                        <div id="encouragement">
+                            <div class="feedback-item praise">Keep practicing! You're doing great!</div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <h4>Suggested Topics</h4>
+                        <div id="suggestedTopics" class="suggested-topics">
+                            <p style="color: var(--text-light); font-size: 0.9rem;">Topic suggestions will appear here...</p>
+                        </div>
+                    </div>
+
+                    <button class="btn-hear-again" id="hearAgainBtn">🔊 Hear Last Response</button>
+                </div>
+
+                <!-- Bottom: Voice Controls -->
+                <div class="voice-controls-panel">
+                    <div class="transcription-box">
+                        <div class="transcription-text" id="transcriptionText">
+                            Click the microphone to start speaking in French...
+                        </div>
+                        <div class="interim-text" id="interimText"></div>
+                    </div>
+
+                    <div class="waveform-container" id="waveform">
+                        <div class="waveform-bar" style="height: 10px;"></div>
+                        <div class="waveform-bar" style="height: 15px;"></div>
+                        <div class="waveform-bar" style="height: 25px;"></div>
+                        <div class="waveform-bar" style="height: 20px;"></div>
+                        <div class="waveform-bar" style="height: 30px;"></div>
+                        <div class="waveform-bar" style="height: 25px;"></div>
+                        <div class="waveform-bar" style="height: 20px;"></div>
+                        <div class="waveform-bar" style="height: 15px;"></div>
+                        <div class="waveform-bar" style="height: 10px;"></div>
+                    </div>
+
+                    <div class="controls-container">
+                        <button id="micBtn" class="btn-mic" title="Click to speak">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mic-status-text" id="micStatusText">Ready to listen</div>
+
+                    <div class="controls-container" style="margin-top: 15px;">
+                        <button id="sendBtn" class="btn-control btn-send" disabled>Send</button>
+                        <button id="speakBtn" class="btn-control btn-speak">🔊 Replay</button>
+                        <button id="clearBtn" class="btn-control btn-settings">Clear</button>
+                    </div>
+
+                    <div class="status-bar">
+                        <span id="statusText">Ready to begin. Click microphone to speak.</span>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="status-bar">
-                <span id="statusText">Ready</span>
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button class="btn-close" id="closeSettingsBtn">&times;</button>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Voice Preferences</h3>
+
+                    <div class="settings-item">
+                        <label>French Accent</label>
+                        <select id="accentSelect">
+                            <option value="fr-FR">Parisian French (Standard)</option>
+                            <option value="fr-CA">Canadian French</option>
+                            <option value="fr-BE">Belgian French</option>
+                            <option value="fr-CH">Swiss French</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <label>Speech Rate: <span class="slider-value" id="rateValue">1.0x</span></label>
+                        <input type="range" id="rateSlider" min="0.5" max="2.0" step="0.1" value="1.0">
+                    </div>
+
+                    <div class="settings-item">
+                        <label>Speech Pitch: <span class="slider-value" id="pitchValue">1.0x</span></label>
+                        <input type="range" id="pitchSlider" min="0.8" max="1.2" step="0.1" value="1.0">
+                    </div>
+
+                    <div class="settings-item">
+                        <label>Volume: <span class="slider-value" id="volumeValue">100%</span></label>
+                        <input type="range" id="volumeSlider" min="0" max="100" step="5" value="100">
+                    </div>
+
+                    <div class="settings-item">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Auto-play AI Responses</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoPlayToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Display Preferences</h3>
+
+                    <div class="settings-item">
+                        <label>Translation Display</label>
+                        <select id="translationMode">
+                            <option value="on-demand">On Demand (Click to show)</option>
+                            <option value="always">Always Show</option>
+                            <option value="off">Never Show</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Show Interim Results</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="interimToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Learning Preferences</h3>
+
+                    <div class="settings-item">
+                        <label>Feedback Level</label>
+                        <select id="feedbackLevel">
+                            <option value="minimal">Minimal</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="detailed">Detailed</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <label>Correction Tone</label>
+                        <select id="correctionTone">
+                            <option value="encouraging" selected>Encouraging</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="strict">Strict</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Auto-Send After Speaking</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoSendToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration
+        // ===== CONFIGURATION =====
+        const SCENARIOS = {
+            casual: {
+                name: 'Casual Conversation',
+                description: 'Natural, everyday French chat',
+                objectives: 'Practice daily routines, hobbies, experiences, and casual topics',
+                context: 'You are having a friendly conversation with a French speaker about everyday life',
+                starterPrompt: 'Bonjour! Comment allez-vous? Qu\'avez-vous fait aujourd\'hui?',
+                tone: 'Friendly, warm, encouraging'
+            },
+            restaurant: {
+                name: 'Restaurant Ordering',
+                description: 'Real-world dining scenario',
+                objectives: 'Learn to order food, describe preferences, and interact with restaurant staff',
+                context: 'You are a customer at a French restaurant, and I am your server',
+                starterPrompt: 'Bonsoir! Bienvenue au restaurant. Que puis-je vous proposer aujourd\'hui?',
+                tone: 'Professional, helpful, patient'
+            },
+            travel: {
+                name: 'Travel Planning',
+                description: 'Booking and travel discussions',
+                objectives: 'Practice discussing destinations, hotels, transportation, and activities',
+                context: 'You are planning a trip to France, and I am your travel advisor',
+                starterPrompt: 'Bonjour! Où aimeriez-vous voyager en France? Je peux vous aider!',
+                tone: 'Helpful, enthusiastic, informative'
+            },
+            professional: {
+                name: 'Professional Meeting',
+                description: 'Business French practice',
+                objectives: 'Develop professional vocabulary and formal communication skills',
+                context: 'You are in a professional setting, discussing work experience and career goals',
+                starterPrompt: 'Bonjour. Parlez-moi de votre expérience professionnelle, s\'il vous plaît.',
+                tone: 'Formal, professional, respectful'
+            },
+            grammar: {
+                name: 'Grammar Focus',
+                description: 'Concentrated grammar practice',
+                objectives: 'Master specific grammatical structures and rules',
+                context: 'We are focusing on improving your French grammar through targeted practice',
+                starterPrompt: 'Bonjour! Quelle structure grammaticale voulez-vous pratiquer aujourd\'hui?',
+                tone: 'Educational, patient, encouraging'
+            },
+            debate: {
+                name: 'Debate & Discussion',
+                description: 'Opinion-based conversations',
+                objectives: 'Express opinions, argue points, and discuss complex topics',
+                context: 'We are having an intellectual discussion about various topics',
+                starterPrompt: 'Bonjour! Quel sujet voulez-vous discuter? Technologie? Environnement? Culture?',
+                tone: 'Thoughtful, respectful, engaging'
+            },
+            free: {
+                name: 'Free Topic',
+                description: 'Choose any subject',
+                objectives: 'Practice French conversation on any topic of your choice',
+                context: 'We can talk about anything you\'d like in French',
+                starterPrompt: 'Bonjour! De quoi aimeriez-vous parler aujourd\'hui?',
+                tone: 'Flexible, adaptive, natural'
+            }
+        };
+
         const LEVELS = {
             A1: {
                 name: 'Beginner (A1)',
                 description: 'Basic phrases and simple sentences',
-                instructions: 'Use very simple vocabulary, present tense primarily, short sentences. Speak slowly and clearly. Use common everyday expressions.'
+                badge: 'beginner',
+                speechRate: 0.7,
+                instructions: 'Use very simple vocabulary, present tense primarily, short 2-3 word sentences. Speak slowly and clearly. Use common everyday expressions. Be very encouraging.'
             },
             A2: {
                 name: 'Elementary (A2)',
                 description: 'Simple conversations about familiar topics',
+                badge: 'beginner',
+                speechRate: 0.8,
                 instructions: 'Use simple vocabulary and common phrases. Include past and future tenses occasionally. Keep sentences relatively short but can be slightly more complex.'
             },
             B1: {
                 name: 'Intermediate (B1)',
                 description: 'Conversations about experiences and events',
-                instructions: 'Use intermediate vocabulary. Mix various tenses. Discuss opinions and experiences. Use some idiomatic expressions.'
+                badge: 'intermediate',
+                speechRate: 1.0,
+                instructions: 'Use intermediate vocabulary. Mix various tenses including passé composé and futur simple. Discuss opinions and experiences. Use some idiomatic expressions.'
             },
             B2: {
                 name: 'Upper Intermediate (B2)',
                 description: 'Complex conversations and abstract topics',
+                badge: 'intermediate',
+                speechRate: 1.0,
                 instructions: 'Use advanced vocabulary and complex sentence structures. Discuss abstract topics. Use subjunctive mood and various tenses appropriately.'
             },
             C1: {
                 name: 'Advanced (C1)',
                 description: 'Fluent conversation on complex topics',
-                instructions: 'Use sophisticated vocabulary and complex grammatical structures. Discuss nuanced topics. Use idiomatic expressions and cultural references.'
+                badge: 'advanced',
+                speechRate: 1.2,
+                instructions: 'Use sophisticated vocabulary and complex grammatical structures. Discuss nuanced topics. Use idiomatic expressions and cultural references naturally.'
             },
             C2: {
                 name: 'Mastery (C2)',
                 description: 'Near-native fluency',
-                instructions: 'Use native-like expressions, subtle nuances, literary references, and complex rhetorical devices. Speak naturally about any topic.'
+                badge: 'advanced',
+                speechRate: 1.2,
+                instructions: 'Use native-like expressions, subtle nuances, literary references, and complex rhetorical devices. Speak naturally about any topic at native level.'
             }
         };
 
-        const TOPICS = {
-            daily_life: { name: 'Daily Life', description: 'Everyday activities, routines, hobbies' },
-            travel: { name: 'Travel', description: 'Trips, tourism, cultural experiences' },
-            food: { name: 'Food & Dining', description: 'Cuisine, restaurants, cooking' },
-            work: { name: 'Work & Career', description: 'Professional life, jobs, business' },
-            culture: { name: 'Culture & Arts', description: 'Movies, books, music, art' },
-            technology: { name: 'Technology', description: 'Digital life, innovation, science' },
-            health: { name: 'Health & Wellness', description: 'Fitness, medicine, wellbeing' },
-            environment: { name: 'Environment', description: 'Nature, climate, sustainability' },
-            education: { name: 'Education', description: 'Learning, schools, knowledge' },
-            social: { name: 'Social Issues', description: 'Society, current events, politics' }
-        };
-
-        // AI Provider configurations
-        const PROVIDERS = {
-            anthropic: {
-                name: 'Anthropic Claude',
-                models: [
-                    { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
-                    { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
-                    { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' }
-                ]
-            },
-            openai: {
-                name: 'OpenAI',
-                models: [
-                    { id: 'gpt-4o', name: 'GPT-4o' },
-                    { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
-                    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-                    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
-                ]
-            },
-            google: {
-                name: 'Google Gemini',
-                models: [
-                    { id: 'gemini-1.5-pro-latest', name: 'Gemini 1.5 Pro' },
-                    { id: 'gemini-1.5-flash-latest', name: 'Gemini 1.5 Flash' }
-                ]
-            },
-            mistral: {
-                name: 'Mistral AI',
-                models: [
-                    { id: 'mistral-large-latest', name: 'Mistral Large' },
-                    { id: 'mistral-small-latest', name: 'Mistral Small' }
-                ]
-            },
-            perplexity: {
-                name: 'Perplexity AI',
-                models: [
-                    { id: 'sonar-pro', name: 'Sonar Pro' },
-                    { id: 'sonar', name: 'Sonar' },
-                    { id: 'sonar-reasoning', name: 'Sonar Reasoning' }
-                ]
-            }
-        };
-
-        // Global state
+        // ===== GLOBAL STATE =====
         let selectedLevel = null;
-        let selectedTopic = null;
-        let selectedProvider = null;
-        let selectedModel = null;
-        let apiKeys = {
-            anthropic: '',
-            openai: '',
-            google: '',
-            mistral: '',
-            perplexity: ''
-        };
+        let selectedScenario = null;
+        let apiKey = '';
         let recognition = null;
         let synthesis = window.speechSynthesis;
         let isRecording = false;
         let currentTranscript = '';
         let lastAIResponse = '';
         let conversationHistory = [];
+        let sessionStartTime = null;
+        let timerInterval = null;
+        let messageCount = 0;
+        let waveformInterval = null;
 
-        // Initialize
+        // Settings state
+        let settings = {
+            accent: 'fr-FR',
+            rate: 1.0,
+            pitch: 1.0,
+            volume: 1.0,
+            autoPlay: true,
+            translationMode: 'on-demand',
+            showInterim: true,
+            feedbackLevel: 'normal',
+            correctionTone: 'encouraging',
+            autoSend: true
+        };
+
+        // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', () => {
-            loadApiKeys();
+            loadApiKey();
             renderLevels();
-            renderTopics();
-            renderProviders();
+            renderScenarios();
             setupEventListeners();
             setupSpeechRecognition();
+            loadSettings();
         });
 
-        // Load API keys from localStorage
-        function loadApiKeys() {
-            const keys = ['anthropic', 'openai', 'google', 'mistral', 'perplexity'];
-            keys.forEach(provider => {
-                const stored = localStorage.getItem(`${provider}_api_key`);
-                if (stored) {
-                    document.getElementById(`${provider}KeyInput`).value = stored;
-                    apiKeys[provider] = stored;
-                }
-            });
-            // Add change listeners to API key inputs
-            keys.forEach(provider => {
-                document.getElementById(`${provider}KeyInput`).addEventListener('input', saveApiKeys);
-            });
+        function loadApiKey() {
+            const stored = localStorage.getItem('perplexity_api_key');
+            if (stored) {
+                document.getElementById('perplexityKeyInput').value = stored;
+                apiKey = stored;
+            }
+            document.getElementById('perplexityKeyInput').addEventListener('input', saveApiKey);
         }
 
-        // Save API keys to localStorage
-        function saveApiKeys() {
-            const keys = ['anthropic', 'openai', 'google', 'mistral', 'perplexity'];
-            keys.forEach(provider => {
-                const key = document.getElementById(`${provider}KeyInput`).value.trim();
-                if (key) {
-                    apiKeys[provider] = key;
-                    localStorage.setItem(`${provider}_api_key`, key);
-                } else {
-                    apiKeys[provider] = '';
-                }
-            });
-            renderProviders(); // Re-render to show only available providers
+        function saveApiKey() {
+            apiKey = document.getElementById('perplexityKeyInput').value.trim();
+            if (apiKey) {
+                localStorage.setItem('perplexity_api_key', apiKey);
+            }
+            checkCanStart();
         }
 
-        // Get available providers (those with API keys)
-        function getAvailableProviders() {
-            return Object.keys(PROVIDERS).filter(id => apiKeys[id]);
-        }
-
-        // Render levels
         function renderLevels() {
             const container = document.getElementById('levelSelection');
             Object.entries(LEVELS).forEach(([key, level]) => {
@@ -729,40 +1323,17 @@
             });
         }
 
-        // Render topics
-        function renderTopics() {
-            const container = document.getElementById('topicSelection');
-            Object.entries(TOPICS).forEach(([key, topic]) => {
+        function renderScenarios() {
+            const container = document.getElementById('scenarioSelection');
+            Object.entries(SCENARIOS).forEach(([key, scenario]) => {
                 const card = document.createElement('div');
                 card.className = 'selection-card';
-                card.innerHTML = `<h3>${topic.name}</h3><p>${topic.description}</p>`;
-                card.addEventListener('click', () => selectTopic(key, card));
+                card.innerHTML = `<h3>${scenario.name}</h3><p>${scenario.description}</p>`;
+                card.addEventListener('click', () => selectScenario(key, card));
                 container.appendChild(card);
             });
         }
 
-        // Render providers
-        function renderProviders() {
-            const container = document.getElementById('providerSelection');
-            container.innerHTML = '';
-            const availableProviders = getAvailableProviders();
-
-            if (availableProviders.length === 0) {
-                container.innerHTML = '<p style="color: #ef4444; text-align: center;">Please enter at least one API key above to continue.</p>';
-                return;
-            }
-
-            availableProviders.forEach(providerId => {
-                const provider = PROVIDERS[providerId];
-                const card = document.createElement('div');
-                card.className = 'selection-card';
-                card.innerHTML = `<h3>${provider.name}</h3><p>${provider.models.length} models available</p>`;
-                card.addEventListener('click', () => selectProvider(providerId, card));
-                container.appendChild(card);
-            });
-        }
-
-        // Select level
         function selectLevel(level, card) {
             selectedLevel = level;
             document.querySelectorAll('#levelSelection .selection-card').forEach(c => c.classList.remove('selected'));
@@ -770,53 +1341,43 @@
             checkCanStart();
         }
 
-        // Select topic
-        function selectTopic(topic, card) {
-            selectedTopic = topic;
-            document.querySelectorAll('#topicSelection .selection-card').forEach(c => c.classList.remove('selected'));
+        function selectScenario(scenario, card) {
+            selectedScenario = scenario;
+            document.querySelectorAll('#scenarioSelection .selection-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             checkCanStart();
         }
 
-        // Select provider
-        function selectProvider(providerId, card) {
-            selectedProvider = providerId;
-            document.querySelectorAll('#providerSelection .selection-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-
-            // Update model selection
-            const provider = PROVIDERS[providerId];
-            if (provider && provider.models.length > 0) {
-                const modelSelection = document.getElementById('modelSelection');
-                const modelSelect = document.getElementById('modelSelect');
-                modelSelect.innerHTML = '<option value="">Default Model</option>';
-                provider.models.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model.id;
-                    option.textContent = model.name;
-                    modelSelect.appendChild(option);
-                });
-                modelSelection.style.display = 'block';
-            }
-
-            checkCanStart();
-        }
-
-        // Check if can start
         function checkCanStart() {
-            document.getElementById('startBtn').disabled = !(selectedLevel && selectedTopic && selectedProvider && apiKeys[selectedProvider]);
+            document.getElementById('startBtn').disabled = !(selectedLevel && selectedScenario && apiKey);
         }
 
-        // Setup event listeners
         function setupEventListeners() {
-            document.getElementById('startBtn').addEventListener('click', startConversation);
-            document.getElementById('endBtn').addEventListener('click', endConversation);
+            document.getElementById('startBtn').addEventListener('click', startSession);
+            document.getElementById('endBtn').addEventListener('click', endSession);
             document.getElementById('micBtn').addEventListener('click', toggleRecording);
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
             document.getElementById('speakBtn').addEventListener('click', speakLastResponse);
+            document.getElementById('hearAgainBtn').addEventListener('click', speakLastResponse);
+            document.getElementById('clearBtn').addEventListener('click', clearTranscript);
+            document.getElementById('settingsBtn').addEventListener('click', openSettings);
+            document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+            document.getElementById('changeScenarioBtn').addEventListener('click', changeScenario);
+            document.getElementById('exportBtn').addEventListener('click', exportConversation);
+
+            // Settings event listeners
+            document.getElementById('accentSelect').addEventListener('change', updateSettings);
+            document.getElementById('rateSlider').addEventListener('input', updateRateDisplay);
+            document.getElementById('pitchSlider').addEventListener('input', updatePitchDisplay);
+            document.getElementById('volumeSlider').addEventListener('input', updateVolumeDisplay);
+            document.getElementById('autoPlayToggle').addEventListener('change', updateSettings);
+            document.getElementById('translationMode').addEventListener('change', updateSettings);
+            document.getElementById('interimToggle').addEventListener('change', updateSettings);
+            document.getElementById('feedbackLevel').addEventListener('change', updateSettings);
+            document.getElementById('correctionTone').addEventListener('change', updateSettings);
+            document.getElementById('autoSendToggle').addEventListener('change', updateSettings);
         }
 
-        // Setup speech recognition
         function setupSpeechRecognition() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 showStatus('Speech recognition not supported. Please use Chrome.', 'error');
@@ -831,9 +1392,11 @@
 
             recognition.onstart = () => {
                 isRecording = true;
-                document.getElementById('micBtn').classList.add('recording');
-                showStatus('Listening...', 'listening');
+                updateMicButton('recording');
+                showStatus('Listening... Speak in French', 'listening');
                 document.getElementById('transcriptionText').textContent = 'Listening...';
+                document.getElementById('micStatusText').textContent = 'Listening...';
+                startWaveform();
             };
 
             recognition.onresult = (event) => {
@@ -851,288 +1414,475 @@
                     document.getElementById('transcriptionText').textContent = final;
                     document.getElementById('interimText').textContent = '';
                     document.getElementById('sendBtn').disabled = false;
-                } else {
+                    if (settings.autoSend) {
+                        setTimeout(() => sendMessage(), 500);
+                    }
+                } else if (settings.showInterim) {
                     document.getElementById('interimText').textContent = interim;
                 }
             };
 
             recognition.onerror = (event) => {
                 isRecording = false;
-                document.getElementById('micBtn').classList.remove('recording');
+                updateMicButton('ready');
+                stopWaveform();
                 showStatus(event.error === 'no-speech' ? 'No speech detected' : `Error: ${event.error}`, 'error');
+                document.getElementById('micStatusText').textContent = 'Ready to listen';
             };
 
             recognition.onend = () => {
                 isRecording = false;
-                document.getElementById('micBtn').classList.remove('recording');
-                if (!currentTranscript) showStatus('Ready', 'ready');
+                updateMicButton('ready');
+                stopWaveform();
+                if (!currentTranscript) {
+                    showStatus('Ready', 'ready');
+                    document.getElementById('micStatusText').textContent = 'Ready to listen';
+                }
             };
         }
 
-        // Toggle recording
         function toggleRecording() {
             if (!recognition) return;
             if (isRecording) {
                 recognition.stop();
             } else {
-                currentTranscript = '';
-                document.getElementById('sendBtn').disabled = true;
                 recognition.start();
             }
         }
 
-        // Start conversation
-        function startConversation() {
-            selectedModel = document.getElementById('modelSelect').value || null;
+        function clearTranscript() {
+            currentTranscript = '';
+            document.getElementById('transcriptionText').textContent = 'Click the microphone to start speaking in French...';
+            document.getElementById('interimText').textContent = '';
+            document.getElementById('sendBtn').disabled = true;
+        }
+
+        function updateMicButton(state) {
+            const btn = document.getElementById('micBtn');
+            btn.className = 'btn-mic';
+            if (state === 'recording') btn.classList.add('recording');
+            else if (state === 'processing') btn.classList.add('processing');
+            else if (state === 'speaking') btn.classList.add('speaking');
+        }
+
+        function startWaveform() {
+            const bars = document.querySelectorAll('.waveform-bar');
+            waveformInterval = setInterval(() => {
+                bars.forEach(bar => {
+                    const height = Math.random() * 50 + 10;
+                    bar.style.height = `${height}px`;
+                });
+            }, 100);
+        }
+
+        function stopWaveform() {
+            if (waveformInterval) {
+                clearInterval(waveformInterval);
+                waveformInterval = null;
+            }
+            const bars = document.querySelectorAll('.waveform-bar');
+            const baseHeights = [10, 15, 25, 20, 30, 25, 20, 15, 10];
+            bars.forEach((bar, i) => {
+                bar.style.height = `${baseHeights[i]}px`;
+            });
+        }
+
+        function startSession() {
             conversationHistory = [];
-            document.getElementById('currentLevel').textContent = selectedLevel;
-            document.getElementById('currentTopic').textContent = selectedTopic;
+            messageCount = 0;
+            sessionStartTime = Date.now();
+
+            const level = LEVELS[selectedLevel];
+            const scenario = SCENARIOS[selectedScenario];
+
+            // Update UI
+            document.getElementById('scenarioTitle').textContent = scenario.name;
+            document.getElementById('difficultyBadge').textContent = level.name;
+            document.getElementById('difficultyBadge').className = `difficulty-badge ${level.badge}`;
+            document.getElementById('learningObjectives').textContent = scenario.objectives;
+            document.getElementById('contextInstructions').textContent = scenario.context;
+
+            // Switch screens
             document.getElementById('setupScreen').classList.remove('active');
             document.getElementById('conversationScreen').classList.add('active');
-            addMessage('ai', 'Bonjour! Ready to practice French? Start speaking by clicking the microphone!');
-            showStatus('Click microphone to speak', 'ready');
+
+            // Start timer
+            startTimer();
+
+            // Add AI greeting
+            addMessage('ai', scenario.starterPrompt);
+            speakText(scenario.starterPrompt);
+
+            showStatus('Session started. Click microphone to speak.', 'ready');
         }
 
-        // Provider-specific API call functions
-        async function callAnthropicAPI(systemPrompt, messages, model) {
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKeys.anthropic,
-                    'anthropic-version': '2023-06-01'
-                },
-                body: JSON.stringify({
-                    model: model || 'claude-3-5-sonnet-20241022',
-                    max_tokens: 1024,
-                    system: systemPrompt,
-                    messages: messages
-                })
-            });
-
-            if (!response.ok) throw new Error(`API error: ${response.status}`);
-            const data = await response.json();
-            return data.content[0].text;
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('sessionTimer').textContent =
+                    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
         }
 
-        async function callOpenAIAPI(systemPrompt, messages, model) {
-            const openaiMessages = [
-                { role: 'system', content: systemPrompt },
-                ...messages
-            ];
-
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKeys.openai}`
-                },
-                body: JSON.stringify({
-                    model: model || 'gpt-4o',
-                    max_tokens: 1024,
-                    messages: openaiMessages
-                })
-            });
-
-            if (!response.ok) throw new Error(`API error: ${response.status}`);
-            const data = await response.json();
-            return data.choices[0].message.content;
-        }
-
-        async function callGoogleAPI(systemPrompt, messages, model) {
-            const contents = messages.map(msg => ({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.content }]
-            }));
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model || 'gemini-1.5-pro-latest'}:generateContent?key=${apiKeys.google}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    system_instruction: { parts: [{ text: systemPrompt }] },
-                    contents: contents,
-                    generationConfig: { maxOutputTokens: 1024 }
-                })
-            });
-
-            if (!response.ok) throw new Error(`API error: ${response.status}`);
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        async function callMistralAPI(systemPrompt, messages, model) {
-            const mistralMessages = [
-                { role: 'system', content: systemPrompt },
-                ...messages
-            ];
-
-            const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKeys.mistral}`
-                },
-                body: JSON.stringify({
-                    model: model || 'mistral-large-latest',
-                    max_tokens: 1024,
-                    messages: mistralMessages
-                })
-            });
-
-            if (!response.ok) throw new Error(`API error: ${response.status}`);
-            const data = await response.json();
-            return data.choices[0].message.content;
-        }
-
-        async function callPerplexityAPI(systemPrompt, messages, model) {
-            // Perplexity uses standard OpenAI format with system messages
-            const perplexityMessages = [
-                { role: 'system', content: systemPrompt },
-                ...messages
-            ];
-
-            const response = await fetch('https://api.perplexity.ai/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKeys.perplexity}`
-                },
-                body: JSON.stringify({
-                    model: model || 'sonar-pro',
-                    max_tokens: 1024,
-                    messages: perplexityMessages,
-                    temperature: 0.7
-                })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                let errorMessage = `API error: ${response.status}`;
-                try {
-                    const errorData = JSON.parse(errorText);
-                    errorMessage += ` - ${errorData.error?.message || errorData.message || response.statusText}`;
-                } catch {
-                    errorMessage += ` - ${errorText || response.statusText}`;
-                }
-                throw new Error(errorMessage);
-            }
-            const data = await response.json();
-            return data.choices[0].message.content;
-        }
-
-        // Send message to AI
         async function sendMessage() {
-            if (!currentTranscript || !selectedProvider || !apiKeys[selectedProvider]) return;
+            if (!currentTranscript) return;
 
             const userMessage = currentTranscript;
             currentTranscript = '';
+
             addMessage('user', userMessage);
-            document.getElementById('transcriptionText').textContent = 'Click microphone to start speaking...';
+            document.getElementById('transcriptionText').textContent = 'Click the microphone to start speaking in French...';
             document.getElementById('sendBtn').disabled = true;
+            updateMicButton('processing');
             showStatus('AI is thinking...', 'thinking');
+            document.getElementById('micStatusText').textContent = 'Processing...';
 
             conversationHistory.push({ role: 'user', content: userMessage });
 
             const level = LEVELS[selectedLevel];
-            const topic = TOPICS[selectedTopic];
+            const scenario = SCENARIOS[selectedScenario];
+
             const systemPrompt = `You are a French conversation partner helping someone practice French at the ${level.name} level.
 
-Topic: ${topic.name} - ${topic.description}
+Scenario: ${scenario.name} - ${scenario.description}
+Context: ${scenario.context}
+Tone: ${scenario.tone}
 
 Instructions:
 - ${level.instructions}
 - Always respond in French
-- Be encouraging and patient
-- Gently correct grammar mistakes naturally
-- Ask follow-up questions
-- Stay on topic: ${topic.name}
 - Keep responses conversational (2-4 sentences)
-- Adapt to user's level
+- Be ${settings.correctionTone}
+- Provide ${settings.feedbackLevel} feedback
+- Ask follow-up questions
+- Stay in character for the scenario
 
-Be friendly and engaging!`;
+Be engaging and maintain the scenario context!`;
 
             try {
-                let aiMessage;
-                switch (selectedProvider) {
-                    case 'anthropic':
-                        aiMessage = await callAnthropicAPI(systemPrompt, conversationHistory, selectedModel);
-                        break;
-                    case 'openai':
-                        aiMessage = await callOpenAIAPI(systemPrompt, conversationHistory, selectedModel);
-                        break;
-                    case 'google':
-                        aiMessage = await callGoogleAPI(systemPrompt, conversationHistory, selectedModel);
-                        break;
-                    case 'mistral':
-                        aiMessage = await callMistralAPI(systemPrompt, conversationHistory, selectedModel);
-                        break;
-                    case 'perplexity':
-                        aiMessage = await callPerplexityAPI(systemPrompt, conversationHistory, selectedModel);
-                        break;
-                    default:
-                        throw new Error('Unknown provider');
+                const response = await fetch('https://api.perplexity.ai/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'sonar-pro',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            ...conversationHistory
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 500
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
                 }
+
+                const data = await response.json();
+                const aiMessage = data.choices[0].message.content;
 
                 conversationHistory.push({ role: 'assistant', content: aiMessage });
                 lastAIResponse = aiMessage;
                 addMessage('ai', aiMessage);
-                speakText(aiMessage);
+
+                if (settings.autoPlay) {
+                    speakText(aiMessage);
+                }
+
+                // Generate feedback
+                generateFeedback(userMessage, aiMessage);
+
+                updateMicButton('ready');
                 showStatus('Ready to continue', 'ready');
+                document.getElementById('micStatusText').textContent = 'Ready to listen';
             } catch (error) {
                 console.error('Error:', error);
                 showStatus(`Error: ${error.message}`, 'error');
-                conversationHistory.pop(); // Remove failed user message
+                conversationHistory.pop();
+                updateMicButton('ready');
+                document.getElementById('micStatusText').textContent = 'Ready to listen';
             }
         }
 
-        // Add message to chat
         function addMessage(role, text) {
             const container = document.getElementById('chatContainer');
-            const msg = document.createElement('div');
-            msg.className = `message ${role}`;
-            const bubble = document.createElement('div');
-            bubble.className = 'message-bubble';
-            bubble.textContent = text;
-            msg.appendChild(bubble);
-            container.appendChild(msg);
+            const now = new Date();
+            const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${role}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'message-header';
+            headerDiv.innerHTML = `
+                <span class="message-label">${role === 'user' ? 'You' : 'Tutor'}</span>
+                <span class="message-timestamp">${timestamp}</span>
+            `;
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = text;
+
+            contentDiv.appendChild(headerDiv);
+            contentDiv.appendChild(bubbleDiv);
+
+            // Add translation toggle for AI messages
+            if (role === 'ai' && settings.translationMode !== 'off') {
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'translation-toggle';
+                toggleBtn.textContent = 'Show Translation';
+                toggleBtn.onclick = () => toggleTranslation(toggleBtn, bubbleDiv);
+                contentDiv.appendChild(toggleBtn);
+
+                const translationDiv = document.createElement('div');
+                translationDiv.className = 'translation-text';
+                translationDiv.textContent = 'Translation will appear here...';
+                contentDiv.appendChild(translationDiv);
+
+                if (settings.translationMode === 'always') {
+                    toggleBtn.click();
+                }
+            }
+
+            msgDiv.appendChild(contentDiv);
+            container.appendChild(msgDiv);
             container.scrollTop = container.scrollHeight;
+
+            messageCount++;
+            document.getElementById('messageCount').textContent = `${messageCount} messages`;
         }
 
-        // Text-to-speech
+        function toggleTranslation(btn, bubbleDiv) {
+            const translationDiv = btn.nextElementSibling;
+            if (translationDiv.classList.contains('visible')) {
+                translationDiv.classList.remove('visible');
+                btn.textContent = 'Show Translation';
+            } else {
+                translationDiv.classList.add('visible');
+                btn.textContent = 'Hide Translation';
+                // In a real implementation, you'd call a translation API here
+                translationDiv.textContent = `English: ${bubbleDiv.textContent}`;
+            }
+        }
+
+        function generateFeedback(userMessage, aiMessage) {
+            // Simulated feedback generation - in a real implementation,
+            // you'd use AI to analyze the user's French and provide real feedback
+
+            const feedbackCount = document.getElementById('feedbackCount');
+            let count = parseInt(feedbackCount.textContent);
+
+            // Grammar feedback (simulated)
+            if (Math.random() > 0.5 && settings.feedbackLevel !== 'minimal') {
+                const grammarDiv = document.getElementById('grammarFeedback');
+                const item = document.createElement('div');
+                item.className = 'feedback-item correction';
+                item.innerHTML = `<strong>Tip:</strong> Great use of French structure!`;
+                grammarDiv.appendChild(item);
+                count++;
+            }
+
+            // Pronunciation guide (simulated)
+            if (userMessage.length > 10) {
+                const words = userMessage.split(' ').slice(0, 3);
+                const pronunciationDiv = document.getElementById('pronunciationGuide');
+                pronunciationDiv.innerHTML = '';
+                words.forEach(word => {
+                    const wordDiv = document.createElement('div');
+                    wordDiv.className = 'pronunciation-word';
+                    wordDiv.innerHTML = `
+                        <span class="word">${word}</span>
+                        <span class="guide">"${word.toLowerCase()}"</span>
+                    `;
+                    wordDiv.onclick = () => speakWord(word);
+                    pronunciationDiv.appendChild(wordDiv);
+                });
+            }
+
+            // Encouragement
+            if (messageCount % 3 === 0) {
+                const encouragementDiv = document.getElementById('encouragement');
+                const phrases = [
+                    'Excellent pronunciation!',
+                    'You\'re making great progress!',
+                    'Keep up the good work!',
+                    'Your French is improving!',
+                    'Well done! Very natural!'
+                ];
+                encouragementDiv.innerHTML = `
+                    <div class="feedback-item praise">${phrases[Math.floor(Math.random() * phrases.length)]}</div>
+                `;
+            }
+
+            // Suggested topics
+            const scenario = SCENARIOS[selectedScenario];
+            const suggestedDiv = document.getElementById('suggestedTopics');
+            suggestedDiv.innerHTML = `
+                <div class="topic-suggestion">Ask about preferences</div>
+                <div class="topic-suggestion">Discuss experiences</div>
+                <div class="topic-suggestion">Share opinions</div>
+            `;
+
+            feedbackCount.textContent = count;
+        }
+
         function speakText(text) {
             synthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'fr-FR';
-            utterance.rate = 0.9;
+            utterance.lang = settings.accent;
+            utterance.rate = settings.rate * LEVELS[selectedLevel].speechRate;
+            utterance.pitch = settings.pitch;
+            utterance.volume = settings.volume;
+
             const voices = synthesis.getVoices();
-            const frVoice = voices.find(v => v.lang.startsWith('fr'));
-            if (frVoice) utterance.voice = frVoice;
+            const voice = voices.find(v => v.lang.startsWith(settings.accent.split('-')[0]));
+            if (voice) utterance.voice = voice;
+
+            utterance.onstart = () => {
+                updateMicButton('speaking');
+                document.getElementById('micStatusText').textContent = 'AI is speaking...';
+            };
+
+            utterance.onend = () => {
+                updateMicButton('ready');
+                document.getElementById('micStatusText').textContent = 'Ready to listen';
+            };
+
             synthesis.speak(utterance);
         }
 
-        // Speak last response
-        function speakLastResponse() {
-            if (lastAIResponse) speakText(lastAIResponse);
+        function speakWord(word) {
+            speakText(word);
         }
 
-        // End conversation
-        function endConversation() {
+        function speakLastResponse() {
+            if (lastAIResponse) {
+                speakText(lastAIResponse);
+            }
+        }
+
+        function endSession() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
             conversationHistory = [];
+            messageCount = 0;
             lastAIResponse = '';
             currentTranscript = '';
+
             document.getElementById('chatContainer').innerHTML = '';
             document.getElementById('conversationScreen').classList.remove('active');
             document.getElementById('setupScreen').classList.add('active');
         }
 
-        // Show status
-        function showStatus(message, type = 'ready') {
-            const status = document.getElementById('statusText');
-            status.textContent = message;
-            status.className = type;
+        function changeScenario() {
+            // Allow changing scenario mid-session
+            endSession();
         }
 
-        // Load voices
+        function exportConversation() {
+            const data = {
+                scenario: selectedScenario,
+                level: selectedLevel,
+                messages: conversationHistory,
+                duration: document.getElementById('sessionTimer').textContent,
+                timestamp: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `french-practice-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+            saveSettings();
+        }
+
+        function loadSettings() {
+            const stored = localStorage.getItem('french_tutor_settings');
+            if (stored) {
+                settings = JSON.parse(stored);
+                applySettings();
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('french_tutor_settings', JSON.stringify(settings));
+        }
+
+        function applySettings() {
+            document.getElementById('accentSelect').value = settings.accent;
+            document.getElementById('rateSlider').value = settings.rate;
+            document.getElementById('pitchSlider').value = settings.pitch;
+            document.getElementById('volumeSlider').value = settings.volume * 100;
+            document.getElementById('autoPlayToggle').checked = settings.autoPlay;
+            document.getElementById('translationMode').value = settings.translationMode;
+            document.getElementById('interimToggle').checked = settings.showInterim;
+            document.getElementById('feedbackLevel').value = settings.feedbackLevel;
+            document.getElementById('correctionTone').value = settings.correctionTone;
+            document.getElementById('autoSendToggle').checked = settings.autoSend;
+
+            updateRateDisplay();
+            updatePitchDisplay();
+            updateVolumeDisplay();
+        }
+
+        function updateSettings() {
+            settings.accent = document.getElementById('accentSelect').value;
+            settings.rate = parseFloat(document.getElementById('rateSlider').value);
+            settings.pitch = parseFloat(document.getElementById('pitchSlider').value);
+            settings.volume = parseFloat(document.getElementById('volumeSlider').value) / 100;
+            settings.autoPlay = document.getElementById('autoPlayToggle').checked;
+            settings.translationMode = document.getElementById('translationMode').value;
+            settings.showInterim = document.getElementById('interimToggle').checked;
+            settings.feedbackLevel = document.getElementById('feedbackLevel').value;
+            settings.correctionTone = document.getElementById('correctionTone').value;
+            settings.autoSend = document.getElementById('autoSendToggle').checked;
+
+            saveSettings();
+        }
+
+        function updateRateDisplay() {
+            const value = document.getElementById('rateSlider').value;
+            document.getElementById('rateValue').textContent = `${value}x`;
+            settings.rate = parseFloat(value);
+        }
+
+        function updatePitchDisplay() {
+            const value = document.getElementById('pitchSlider').value;
+            document.getElementById('pitchValue').textContent = `${value}x`;
+            settings.pitch = parseFloat(value);
+        }
+
+        function updateVolumeDisplay() {
+            const value = document.getElementById('volumeSlider').value;
+            document.getElementById('volumeValue').textContent = `${value}%`;
+            settings.volume = parseFloat(value) / 100;
+        }
+
+        function showStatus(message, type = 'ready') {
+            document.getElementById('statusText').textContent = message;
+        }
+
+        // Load voices when ready
         if (synthesis.onvoiceschanged !== undefined) {
             synthesis.onvoiceschanged = () => synthesis.getVoices();
         }
