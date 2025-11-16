@@ -106,6 +106,47 @@ header p {
     opacity: 0.8;
 }
 
+/* Model Selection */
+.model-selection {
+    margin-bottom: 20px;
+}
+
+.model-selection h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.model-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.model-select:hover {
+    border-color: #667eea;
+}
+
+.model-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.error-message {
+    color: #ef4444;
+    padding: 20px;
+    background: #fef2f2;
+    border: 2px solid #fecaca;
+    border-radius: 12px;
+    text-align: center;
+}
+
 /* Buttons */
 .btn-primary,
 .btn-secondary {
