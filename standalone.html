@@ -561,6 +561,87 @@
             font-style: italic;
         }
 
+        .course-info-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--french-blue);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .course-info-btn:hover {
+            background: var(--french-red);
+            transform: scale(1.1);
+        }
+
+        .course-card.selected .course-info-btn {
+            background: var(--gold-accent);
+            color: var(--french-blue);
+        }
+
+        .course-card.selected .course-info-btn:hover {
+            background: var(--french-white);
+        }
+
+        .course-info-body {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .lesson-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--french-blue);
+            background: var(--panel-bg);
+            border-radius: 4px;
+        }
+
+        .lesson-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            background: var(--french-blue);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-right: 10px;
+        }
+
+        .lesson-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .lesson-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .lesson-objectives {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
         /* Divider */
         .divider-text {
             text-align: center;
@@ -1612,6 +1693,19 @@
             </div>
         </div>
 
+        <!-- Course Info Modal -->
+        <div id="courseInfoModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="courseInfoTitle">Course Details</h2>
+                    <button class="btn-close" id="closeCourseInfoBtn">&times;</button>
+                </div>
+                <div id="courseInfoBody" class="course-info-body">
+                    <!-- Course lessons will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
         <!-- Hidden file input for importing sessions -->
         <input type="file" id="importFileInput" accept=".json" style="display: none;">
     </div>
@@ -2355,6 +2449,7 @@
                 const card = document.createElement('div');
                 card.className = 'course-card';
                 card.innerHTML = `
+                    <button class="course-info-btn" title="View course details">ⓘ</button>
                     <span class="course-icon">${course.icon}</span>
                     <h3>
                         ${course.name}
@@ -2363,6 +2458,15 @@
                     <p>${course.description}</p>
                     <div class="course-lessons">${course.lessons.length} lessons included</div>
                 `;
+
+                // Add click listener for the info button
+                const infoBtn = card.querySelector('.course-info-btn');
+                infoBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showCourseInfo(key, course);
+                });
+
+                // Add click listener for the card itself
                 card.addEventListener('click', () => selectCourse(key, card));
                 container.appendChild(card);
             });
@@ -2433,6 +2537,7 @@
             document.getElementById('clearBtn').addEventListener('click', clearTranscript);
             document.getElementById('settingsBtn').addEventListener('click', openSettings);
             document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+            document.getElementById('closeCourseInfoBtn').addEventListener('click', closeCourseInfo);
             document.getElementById('changeScenarioBtn').addEventListener('click', changeScenario);
             document.getElementById('importBtn').addEventListener('click', triggerImport);
             document.getElementById('exportBtn').addEventListener('click', exportSession);
@@ -3225,6 +3330,39 @@ Be engaging and maintain the scenario context!`;
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('active');
             saveSettings();
+        }
+
+        function showCourseInfo(courseKey, course) {
+            const modal = document.getElementById('courseInfoModal');
+            const titleEl = document.getElementById('courseInfoTitle');
+            const bodyEl = document.getElementById('courseInfoBody');
+
+            // Set title
+            titleEl.textContent = `${course.icon} ${course.name}`;
+
+            // Build lessons list
+            let lessonsHTML = '';
+            course.lessons.forEach(lesson => {
+                lessonsHTML += `
+                    <div class="lesson-item">
+                        <div style="display: flex; align-items: flex-start; margin-bottom: 8px;">
+                            <span class="lesson-number">${lesson.id}</span>
+                            <div style="flex: 1;">
+                                <div class="lesson-title">${lesson.name}</div>
+                                <div class="lesson-desc">${lesson.description}</div>
+                            </div>
+                        </div>
+                        <div class="lesson-objectives">📋 ${lesson.objectives}</div>
+                    </div>
+                `;
+            });
+
+            bodyEl.innerHTML = lessonsHTML;
+            modal.classList.add('active');
+        }
+
+        function closeCourseInfo() {
+            document.getElementById('courseInfoModal').classList.remove('active');
         }
 
         function loadSettings() {
