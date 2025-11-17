@@ -2755,7 +2755,25 @@
             conversationHistory.push({ role: 'user', content: userMessage });
 
             const level = LEVELS[selectedLevel];
-            const scenario = SCENARIOS[selectedScenario];
+            let scenario;
+
+            // Check if using a course or manual selection
+            if (selectedCourse) {
+                const course = COURSES[selectedCourse];
+                const lesson = course.lessons[currentLessonIndex];
+
+                // Create a scenario-like object from the lesson
+                scenario = {
+                    name: `${lesson.name} (Lesson ${lesson.id}/${course.lessons.length})`,
+                    description: lesson.description,
+                    objectives: lesson.objectives,
+                    context: lesson.context,
+                    starterPrompt: lesson.starterPrompt,
+                    tone: lesson.tone
+                };
+            } else {
+                scenario = SCENARIOS[selectedScenario];
+            }
 
             const systemPrompt = `You are a French conversation partner helping someone practice French at the ${level.name} level.
 
@@ -2983,7 +3001,21 @@ Be engaging and maintain the scenario context!`;
             }
 
             // Suggested topics
-            const scenario = SCENARIOS[selectedScenario];
+            let scenario;
+            if (selectedCourse) {
+                const course = COURSES[selectedCourse];
+                const lesson = course.lessons[currentLessonIndex];
+                scenario = {
+                    name: `${lesson.name} (Lesson ${lesson.id}/${course.lessons.length})`,
+                    description: lesson.description,
+                    objectives: lesson.objectives,
+                    context: lesson.context,
+                    starterPrompt: lesson.starterPrompt,
+                    tone: lesson.tone
+                };
+            } else {
+                scenario = SCENARIOS[selectedScenario];
+            }
             const suggestedDiv = document.getElementById('suggestedTopics');
             suggestedDiv.innerHTML = `
                 <div class="topic-suggestion">Ask about preferences</div>
@@ -3131,6 +3163,8 @@ Be engaging and maintain the scenario context!`;
                 session: {
                     selectedLevel,
                     selectedScenario,
+                    selectedCourse,
+                    currentLessonIndex,
                     conversationHistory,
                     elapsedSessionTime,
                     messageCount,
@@ -3156,7 +3190,9 @@ Be engaging and maintain the scenario context!`;
 
                 // Metadata
                 metadata: {
-                    scenarioName: selectedScenario ? SCENARIOS[selectedScenario]?.name : 'Unknown',
+                    scenarioName: selectedCourse
+                        ? `${COURSES[selectedCourse].lessons[currentLessonIndex].name} (Lesson ${COURSES[selectedCourse].lessons[currentLessonIndex].id}/${COURSES[selectedCourse].lessons.length})`
+                        : (selectedScenario ? SCENARIOS[selectedScenario]?.name : 'Unknown'),
                     levelName: selectedLevel ? LEVELS[selectedLevel]?.name : 'Unknown',
                     duration: document.getElementById('sessionTimer').textContent,
                     messageCount: messageCount
@@ -3226,8 +3262,14 @@ Be engaging and maintain the scenario context!`;
                 throw new Error(`Invalid or unknown proficiency level: ${session.selectedLevel}`);
             }
 
-            if (!session.selectedScenario || !SCENARIOS[session.selectedScenario]) {
+            // Validate scenario only if not using a course
+            if (!session.selectedCourse && (!session.selectedScenario || !SCENARIOS[session.selectedScenario])) {
                 throw new Error(`Invalid or unknown scenario: ${session.selectedScenario}`);
+            }
+
+            // Validate course if provided
+            if (session.selectedCourse && !COURSES[session.selectedCourse]) {
+                throw new Error(`Invalid or unknown course: ${session.selectedCourse}`);
             }
 
             if (!Array.isArray(session.conversationHistory)) {
@@ -3262,6 +3304,8 @@ Be engaging and maintain the scenario context!`;
             // Import session data
             selectedLevel = session.selectedLevel;
             selectedScenario = session.selectedScenario;
+            selectedCourse = session.selectedCourse;
+            currentLessonIndex = session.currentLessonIndex || 0;
             conversationHistory = session.conversationHistory || [];
             messageCount = session.messageCount || 0;
             lastAIResponse = session.lastAIResponse || '';
@@ -3286,7 +3330,30 @@ Be engaging and maintain the scenario context!`;
 
             // Restore UI
             const level = LEVELS[selectedLevel];
-            const scenario = SCENARIOS[selectedScenario];
+            let scenario;
+
+            // Check if using a course or manual selection
+            if (selectedCourse) {
+                const course = COURSES[selectedCourse];
+                const lesson = course.lessons[currentLessonIndex];
+
+                // Create a scenario-like object from the lesson
+                scenario = {
+                    name: `${lesson.name} (Lesson ${lesson.id}/${course.lessons.length})`,
+                    description: lesson.description,
+                    objectives: lesson.objectives,
+                    context: lesson.context,
+                    starterPrompt: lesson.starterPrompt,
+                    tone: lesson.tone
+                };
+
+                // Show/hide Next Lesson button
+                document.getElementById('nextLessonBtn').style.display = 'block';
+                document.getElementById('nextLessonBtn').textContent = currentLessonIndex < course.lessons.length - 1 ? '➡️ Next Lesson' : '✓ Final Lesson';
+            } else {
+                scenario = SCENARIOS[selectedScenario];
+                document.getElementById('nextLessonBtn').style.display = 'none';
+            }
 
             document.getElementById('scenarioTitle').textContent = scenario.name;
             document.getElementById('difficultyBadge').textContent = level.name;
@@ -3514,6 +3581,8 @@ Be engaging and maintain the scenario context!`;
             const sessionData = {
                 selectedLevel,
                 selectedScenario,
+                selectedCourse,
+                currentLessonIndex,
                 conversationHistory,
                 elapsedSessionTime,  // Save elapsed time instead of start timestamp
                 messageCount,
@@ -3588,6 +3657,8 @@ Be engaging and maintain the scenario context!`;
                 // Restore state
                 selectedLevel = sessionData.selectedLevel;
                 selectedScenario = sessionData.selectedScenario;
+                selectedCourse = sessionData.selectedCourse;
+                currentLessonIndex = sessionData.currentLessonIndex || 0;
                 conversationHistory = sessionData.conversationHistory;
 
                 // Restore session time by calculating new start time from elapsed time
@@ -3613,7 +3684,30 @@ Be engaging and maintain the scenario context!`;
                 }
 
                 const level = LEVELS[selectedLevel];
-                const scenario = SCENARIOS[selectedScenario];
+                let scenario;
+
+                // Check if using a course or manual selection
+                if (selectedCourse) {
+                    const course = COURSES[selectedCourse];
+                    const lesson = course.lessons[currentLessonIndex];
+
+                    // Create a scenario-like object from the lesson
+                    scenario = {
+                        name: `${lesson.name} (Lesson ${lesson.id}/${course.lessons.length})`,
+                        description: lesson.description,
+                        objectives: lesson.objectives,
+                        context: lesson.context,
+                        starterPrompt: lesson.starterPrompt,
+                        tone: lesson.tone
+                    };
+
+                    // Show/hide Next Lesson button
+                    document.getElementById('nextLessonBtn').style.display = 'block';
+                    document.getElementById('nextLessonBtn').textContent = currentLessonIndex < course.lessons.length - 1 ? '➡️ Next Lesson' : '✓ Final Lesson';
+                } else {
+                    scenario = SCENARIOS[selectedScenario];
+                    document.getElementById('nextLessonBtn').style.display = 'none';
+                }
 
                 // Update UI
                 document.getElementById('scenarioTitle').textContent = scenario.name;
