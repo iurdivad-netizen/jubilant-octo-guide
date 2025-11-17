@@ -464,6 +464,136 @@
             opacity: 0.8;
         }
 
+        /* Course Cards */
+        .course-section {
+            margin-bottom: 25px;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .course-card {
+            padding: 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--screen-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .course-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--french-blue), var(--french-red));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .course-card:hover::before {
+            opacity: 1;
+        }
+
+        .course-card:hover {
+            border-color: var(--french-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 85, 184, 0.25);
+        }
+
+        .course-card.selected {
+            border-color: var(--french-blue);
+            background: var(--french-blue);
+            color: white;
+        }
+
+        .course-card.selected::before {
+            opacity: 1;
+            background: var(--gold-accent);
+        }
+
+        .course-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .course-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .course-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            background: var(--beginner-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .course-card.selected .course-badge {
+            background: var(--gold-accent);
+            color: var(--french-blue);
+        }
+
+        .course-card p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+
+        .course-lessons {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* Divider */
+        .divider-text {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider-text::before,
+        .divider-text::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider-text::before {
+            left: 0;
+        }
+
+        .divider-text::after {
+            right: 0;
+        }
+
+        .divider-text span {
+            background: var(--screen-bg);
+            padding: 0 15px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
         .model-selection {
             margin-bottom: 20px;
         }
@@ -1208,6 +1338,16 @@
                     </div>
                 </div>
 
+                <div class="course-section">
+                    <h2>🚀 Quick Start: Structured Courses</h2>
+                    <p style="margin-bottom: 15px; color: var(--text-secondary);">Jump right into a complete course with pre-planned lessons</p>
+                    <div id="courseSelection" class="course-grid"></div>
+                </div>
+
+                <div class="divider-text">
+                    <span>OR</span>
+                </div>
+
                 <h2>Choose Your Proficiency Level</h2>
                 <div id="levelSelection" class="selection-grid"></div>
 
@@ -1239,6 +1379,7 @@
                     </div>
 
                     <div class="quick-actions">
+                        <button class="btn-secondary" id="nextLessonBtn" style="display: none;">➡️ Next Lesson</button>
                         <button class="btn-secondary" id="changeScenarioBtn">Change Scenario</button>
                         <button class="btn-secondary" id="settingsBtn">Settings</button>
                         <button class="btn-secondary" id="importBtn">📥 Import Session</button>
@@ -1581,9 +1722,104 @@
             }
         };
 
+        // Pre-planned courses with structured lessons
+        const COURSES = {
+            a1_complete: {
+                name: 'A1 Complete Course',
+                description: '8 progressive lessons for beginners',
+                level: 'A1',
+                badge: 'beginner',
+                icon: '🎓',
+                lessons: [
+                    {
+                        id: 1,
+                        name: 'Greetings & Introductions',
+                        description: 'Learn to say hello and introduce yourself',
+                        objectives: 'Master basic greetings (Bonjour, Au revoir, Salut), introduce yourself (Je m\'appelle...), ask someone\'s name (Comment tu t\'appelles?)',
+                        context: 'You are meeting someone for the first time and practicing basic greetings',
+                        starterPrompt: 'Bonjour! Je m\'appelle Marie. Comment tu t\'appelles?',
+                        tone: 'Warm, friendly, very encouraging',
+                        vocabulary: ['Bonjour', 'Au revoir', 'Salut', 'Je m\'appelle', 'Comment', 'Tu', 'Enchanté(e)']
+                    },
+                    {
+                        id: 2,
+                        name: 'Numbers & Colors',
+                        description: 'Count from 1-20 and describe colors',
+                        objectives: 'Learn numbers 1-20, basic colors (rouge, bleu, vert, jaune, noir, blanc), simple phrases combining numbers and colors',
+                        context: 'You are shopping and talking about quantities and colors',
+                        starterPrompt: 'Bonjour! Regarde ces ballons! Combien de ballons rouges vois-tu?',
+                        tone: 'Playful, encouraging, patient',
+                        vocabulary: ['un', 'deux', 'trois', 'rouge', 'bleu', 'vert', 'jaune', 'combien']
+                    },
+                    {
+                        id: 3,
+                        name: 'Family & Friends',
+                        description: 'Talk about family members and friends',
+                        objectives: 'Learn family vocabulary (mère, père, frère, sœur, ami), possessive pronouns (mon, ma, mes), describe relationships',
+                        context: 'You are showing photos of your family and talking about them',
+                        starterPrompt: 'Salut! Voici ma famille. J\'ai un frère et une sœur. Et toi?',
+                        tone: 'Warm, conversational, supportive',
+                        vocabulary: ['famille', 'mère', 'père', 'frère', 'sœur', 'ami', 'mon', 'ma', 'mes']
+                    },
+                    {
+                        id: 4,
+                        name: 'Food & Drinks',
+                        description: 'Order food and express preferences',
+                        objectives: 'Learn common foods and drinks, express likes/dislikes (J\'aime, Je n\'aime pas), order in a café',
+                        context: 'You are at a café ordering food and drinks',
+                        starterPrompt: 'Bonjour! Bienvenue au café. Qu\'est-ce que tu aimes manger? Tu veux un café ou un thé?',
+                        tone: 'Friendly, patient, encouraging',
+                        vocabulary: ['café', 'thé', 'eau', 'pain', 'fromage', 'j\'aime', 'je veux', 'manger', 'boire']
+                    },
+                    {
+                        id: 5,
+                        name: 'Daily Routines',
+                        description: 'Describe what you do every day',
+                        objectives: 'Learn daily activities (se réveiller, manger, travailler, dormir), tell time (basic), use present tense verbs',
+                        context: 'You are describing your typical day',
+                        starterPrompt: 'Bonjour! Comment est ta journée? Qu\'est-ce que tu fais le matin?',
+                        tone: 'Conversational, supportive, clear',
+                        vocabulary: ['matin', 'soir', 'manger', 'dormir', 'travailler', 'étudier', 'heure', 'journée']
+                    },
+                    {
+                        id: 6,
+                        name: 'Shopping Basics',
+                        description: 'Ask for prices and buy things',
+                        objectives: 'Learn shopping phrases (Combien ça coûte?, Je voudrais...), numbers for prices, basic transactions',
+                        context: 'You are at a shop buying items',
+                        starterPrompt: 'Bonjour! Bienvenue! Tu cherches quelque chose? Combien coûte ce livre?',
+                        tone: 'Helpful, clear, patient',
+                        vocabulary: ['combien', 'coûte', 'euro', 'cher', 'acheter', 'vendre', 'magasin', 'prix']
+                    },
+                    {
+                        id: 7,
+                        name: 'Directions',
+                        description: 'Ask for and give simple directions',
+                        objectives: 'Learn direction words (droite, gauche, tout droit), ask where things are (Où est...?), understand basic directions',
+                        context: 'You are asking for directions in the street',
+                        starterPrompt: 'Bonjour! Tu es perdu? Où veux-tu aller? La gare est tout droit!',
+                        tone: 'Helpful, clear, reassuring',
+                        vocabulary: ['où', 'droite', 'gauche', 'tout droit', 'près', 'loin', 'ici', 'là-bas']
+                    },
+                    {
+                        id: 8,
+                        name: 'Weather & Seasons',
+                        description: 'Talk about weather and seasons',
+                        objectives: 'Learn weather expressions (Il fait beau, Il pleut), seasons (printemps, été, automne, hiver), describe the weather',
+                        context: 'You are talking about the weather and your favorite season',
+                        starterPrompt: 'Bonjour! Quel temps fait-il aujourd\'hui? Quelle est ta saison préférée?',
+                        tone: 'Friendly, conversational, engaging',
+                        vocabulary: ['temps', 'beau', 'pluie', 'soleil', 'printemps', 'été', 'automne', 'hiver']
+                    }
+                ]
+            }
+        };
+
         // ===== GLOBAL STATE =====
         let selectedLevel = null;
         let selectedScenario = null;
+        let selectedCourse = null;
+        let currentLessonIndex = 0;
         let apiKey = '';
         let recognition = null;
         let synthesis = window.speechSynthesis;
@@ -1619,6 +1855,7 @@
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', () => {
             loadApiKey();
+            renderCourses();
             renderLevels();
             renderScenarios();
             setupEventListeners();
@@ -1667,10 +1904,35 @@
             });
         }
 
+        function renderCourses() {
+            const container = document.getElementById('courseSelection');
+            Object.entries(COURSES).forEach(([key, course]) => {
+                const card = document.createElement('div');
+                card.className = 'course-card';
+                card.innerHTML = `
+                    <span class="course-icon">${course.icon}</span>
+                    <h3>
+                        ${course.name}
+                        <span class="course-badge">${course.level}</span>
+                    </h3>
+                    <p>${course.description}</p>
+                    <div class="course-lessons">${course.lessons.length} lessons included</div>
+                `;
+                card.addEventListener('click', () => selectCourse(key, card));
+                container.appendChild(card);
+            });
+        }
+
         function selectLevel(level, card) {
             selectedLevel = level;
             document.querySelectorAll('#levelSelection .selection-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
+
+            // Clear course selection when manually selecting level
+            selectedCourse = null;
+            currentLessonIndex = 0;
+            document.querySelectorAll('#courseSelection .course-card').forEach(c => c.classList.remove('selected'));
+
             checkCanStart();
         }
 
@@ -1678,17 +1940,47 @@
             selectedScenario = scenario;
             document.querySelectorAll('#scenarioSelection .selection-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
+
+            // Clear course selection when manually selecting scenario
+            selectedCourse = null;
+            currentLessonIndex = 0;
+            document.querySelectorAll('#courseSelection .course-card').forEach(c => c.classList.remove('selected'));
+
+            checkCanStart();
+        }
+
+        function selectCourse(courseKey, card) {
+            selectedCourse = courseKey;
+            currentLessonIndex = 0;
+
+            // Auto-select level based on course
+            const course = COURSES[courseKey];
+            selectedLevel = course.level;
+
+            // Clear any manual selections
+            document.querySelectorAll('#levelSelection .selection-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('#scenarioSelection .selection-card').forEach(c => c.classList.remove('selected'));
+
+            // Mark course as selected
+            document.querySelectorAll('#courseSelection .course-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+
             checkCanStart();
         }
 
         function checkCanStart() {
-            document.getElementById('startBtn').disabled = !(selectedLevel && selectedScenario && apiKey);
+            // Can start if either:
+            // 1. A course is selected (which auto-sets level), OR
+            // 2. Both level and scenario are selected
+            const canStart = (selectedCourse && apiKey) || (selectedLevel && selectedScenario && apiKey);
+            document.getElementById('startBtn').disabled = !canStart;
         }
 
         function setupEventListeners() {
             document.getElementById('startBtn').addEventListener('click', startSession);
             document.getElementById('resumeBtn').addEventListener('click', resumeSessionFromButton);
             document.getElementById('endBtn').addEventListener('click', endSession);
+            document.getElementById('nextLessonBtn').addEventListener('click', nextLesson);
             document.getElementById('micBtn').addEventListener('click', toggleRecording);
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
             document.getElementById('speakBtn').addEventListener('click', speakLastResponse);
@@ -1836,7 +2128,25 @@
             sessionStartTime = Date.now();
 
             const level = LEVELS[selectedLevel];
-            const scenario = SCENARIOS[selectedScenario];
+            let scenario;
+
+            // Check if using a course or manual selection
+            if (selectedCourse) {
+                const course = COURSES[selectedCourse];
+                const lesson = course.lessons[currentLessonIndex];
+
+                // Create a scenario-like object from the lesson
+                scenario = {
+                    name: `${lesson.name} (Lesson ${lesson.id}/${course.lessons.length})`,
+                    description: lesson.description,
+                    objectives: lesson.objectives,
+                    context: lesson.context,
+                    starterPrompt: lesson.starterPrompt,
+                    tone: lesson.tone
+                };
+            } else {
+                scenario = SCENARIOS[selectedScenario];
+            }
 
             // Update UI
             document.getElementById('scenarioTitle').textContent = scenario.name;
@@ -1844,6 +2154,15 @@
             document.getElementById('difficultyBadge').className = `difficulty-badge ${level.badge}`;
             document.getElementById('learningObjectives').textContent = scenario.objectives;
             document.getElementById('contextInstructions').textContent = scenario.context;
+
+            // Show/hide Next Lesson button based on whether using a course
+            if (selectedCourse) {
+                const course = COURSES[selectedCourse];
+                document.getElementById('nextLessonBtn').style.display = 'block';
+                document.getElementById('nextLessonBtn').textContent = currentLessonIndex < course.lessons.length - 1 ? '➡️ Next Lesson' : '✓ Final Lesson';
+            } else {
+                document.getElementById('nextLessonBtn').style.display = 'none';
+            }
 
             // Switch screens
             document.getElementById('setupScreen').classList.remove('active');
@@ -2193,6 +2512,59 @@ Be engaging and maintain the scenario context!`;
         function changeScenario() {
             // Allow changing scenario mid-session
             endSession();
+        }
+
+        function nextLesson() {
+            if (!selectedCourse) return;
+
+            const course = COURSES[selectedCourse];
+
+            // Check if there's a next lesson
+            if (currentLessonIndex >= course.lessons.length - 1) {
+                showStatus('Congratulations! You have completed all lessons in this course!', 'ready');
+                return;
+            }
+
+            // Move to next lesson
+            currentLessonIndex++;
+            const lesson = course.lessons[currentLessonIndex];
+
+            // Clear chat for new lesson
+            conversationHistory = [];
+            messageCount = 0;
+            messageTranslations.clear();
+            initialGreeting = '';
+            document.getElementById('chatContainer').innerHTML = '';
+
+            // Reset timer
+            sessionStartTime = Date.now();
+
+            // Update UI with new lesson
+            const level = LEVELS[selectedLevel];
+            const scenario = {
+                name: `${lesson.name} (Lesson ${lesson.id}/${course.lessons.length})`,
+                description: lesson.description,
+                objectives: lesson.objectives,
+                context: lesson.context,
+                starterPrompt: lesson.starterPrompt,
+                tone: lesson.tone
+            };
+
+            document.getElementById('scenarioTitle').textContent = scenario.name;
+            document.getElementById('learningObjectives').textContent = scenario.objectives;
+            document.getElementById('contextInstructions').textContent = scenario.context;
+
+            // Update button text if on last lesson
+            if (currentLessonIndex === course.lessons.length - 1) {
+                document.getElementById('nextLessonBtn').textContent = '✓ Final Lesson';
+            }
+
+            // Start new lesson with greeting
+            initialGreeting = scenario.starterPrompt;
+            addMessage('ai', scenario.starterPrompt);
+            speakText(scenario.starterPrompt);
+
+            showStatus(`Lesson ${lesson.id}: ${lesson.name} started!`, 'ready');
         }
 
         function exportSession() {
