@@ -2726,6 +2726,9 @@
             addMessage('ai', scenario.starterPrompt);
             speakText(scenario.starterPrompt);
 
+            // Auto-save the initial session state
+            saveSession();
+
             showStatus('Session started. Click microphone to speak.', 'ready');
         }
 
@@ -2852,6 +2855,9 @@ Be engaging and maintain the scenario context!`;
 
                 // Generate feedback
                 generateFeedback(userMessage, frenchText);
+
+                // Auto-save session after each message exchange
+                saveSession();
 
                 updateMicButton('ready');
                 showStatus('Ready to continue', 'ready');
@@ -3145,6 +3151,9 @@ Be engaging and maintain the scenario context!`;
             initialGreeting = scenario.starterPrompt;
             addMessage('ai', scenario.starterPrompt);
             speakText(scenario.starterPrompt);
+
+            // Auto-save the new lesson progress
+            saveSession();
 
             showStatus(`Lesson ${lesson.id}: ${lesson.name} started!`, 'ready');
         }
@@ -3644,11 +3653,20 @@ Be engaging and maintain the scenario context!`;
                 timeText = `${minutesSince} minute${minutesSince > 1 ? 's' : ''} ago`;
             }
 
-            const scenarioName = SCENARIOS[savedSession.selectedScenario]?.name || 'Unknown';
+            // Get scenario/course name for display
+            let displayName;
+            if (savedSession.selectedCourse) {
+                const course = COURSES[savedSession.selectedCourse];
+                const lessonIndex = savedSession.currentLessonIndex || 0;
+                const lesson = course.lessons[lessonIndex];
+                displayName = `${course.name} - ${lesson.name} (${lessonIndex + 1}/${course.lessons.length})`;
+            } else {
+                displayName = SCENARIOS[savedSession.selectedScenario]?.name || 'Unknown';
+            }
             const levelName = LEVELS[savedSession.selectedLevel]?.name || 'Unknown';
 
             // Update resume button text and show it
-            resumeBtn.textContent = `Resume Session (${levelName} - ${scenarioName}, ${timeText})`;
+            resumeBtn.textContent = `Resume Session (${levelName} - ${displayName}, ${timeText})`;
             resumeBtn.style.display = 'block';
         }
 
