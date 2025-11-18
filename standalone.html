@@ -3076,12 +3076,10 @@ Be engaging and maintain the scenario context!`;
             if (sessionStartTime && conversationHistory.length > 0) {
                 if (confirm('Would you like to save this session so you can resume it later?')) {
                     saveSession();
-                } else {
-                    clearSavedSession();
                 }
-            } else {
-                clearSavedSession();
+                // If user says no, don't clear the previous save - just don't overwrite it
             }
+            // If no session or no content, also don't clear - preserve any existing save
 
             conversationHistory = [];
             messageCount = 0;
